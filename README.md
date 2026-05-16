@@ -1,33 +1,25 @@
-# 项目大概介绍
+# 项目基础信息介绍
 - 项目名字 [Dim|C++]mazeAI 一个简单的控制台迷宫模拟的C++项目
-- 目前没有图形化界面 不过操作起来还是很简单的
-- 整个项目使用控制台显示渲染完成
-- 感兴趣的可以使用这个项目来练习一下算法实现 扩展挺方便的
-- 这是我作为初学者自学39天完成的第一个一个小项目()
-- 有些地方可能有问题 毕竟我没学多久 后面会尝试优化的
-- 顺带一提 你可能会有速度更快的的算法 想象力更丰富自定义的算法 但是可能需要一个框架 那么来试试这个项目吧 他给你提供了比较完整的算法实现框架 可以自定义实现
-# 文件用途 以及如何扩展
-- [batc.bat]编译脚本(win平台的) 也可以直接运行"g++ maze_ai_main.cpp maze_ai_hs.cpp Generation_algorithm_lib.cpp Search_algorithm_lib.cpp -o mazeAI_byDim"指令编译
-- [Maze_ai_lx.h]头文件
-- [maze_ai_main.cpp]启动文件 调用函数的 **一般来说不要改*
-- [maze_ai_hs.cpp]主函数库 实现动态渲染 初始化数据之类的 还有错误处理 调用算法
-- [Search_algorithm_lib.cpp]搜索算法库 里面一般来说都是放的路线搜索算法
-- [Generation_algorithm_lib.cpp]这个文件是生成迷宫的算法仓库 里面的函数主要是生成迷宫的 
-
-在[maze_ai_hs.cpp]文件里面 如果你添加了新的算法 可以注册到算法库里面
-```cpp
-void Maze_AI::Load_algorithm_library(){//初始化算法库
-Algorithm_Library_Create.push_back({"生成算法名字","介绍",std::bind(&Maze_AI::你的算法函数名, this,类型)});
-Algorithm_Library_Search.push_back({"搜索算法名字","介绍",std::bind(&Maze_AI::你的算法函数名, this,类型)});
-}
-```
-**不要忘记头文件添加()*
-弄完了启动之后可以使用提示输入你的算法编号
-在maze_ai_hs里面错误处理可以直接使用exits("错误信息")来进行退出处理
-- 如果需要制作算法 
-可以使用Map_loading("当前状态")来进行渲染地图画面
-模拟动画效果
-其他的可以参考一下直带的算法函数
-# 自带算法
-- DFS，BFS(创造)，双向DFS，A，双向A DP动态规划(真/假)
-- 你也可以删除使用你自己的算法 或者参考参考
+- 项目提供一个迷宫框架 基于控制台字符串显示的迷宫模拟 可以模拟生成迷宫以及搜索迷宫 并且可视化过程
+- 以及大部分必要的api接口(函数) 详细可以查看文档[API_Documentation.md]
+- zhangsan 20260427
+# 文件介绍
+1. 框架文件
+- main.cpp 主函数入口(调用函数)
+- maze.cpp 程序主框架实现部分
+- maze.h 程序主框架头文件
+2. 算法文件
+- Create.cpp 迷宫生成算法实现
+- Search.cpp 迷宫搜索算法实现
+- Algorithm_Repository_v1.h 算法实现头文件
+3. 其他
+- API_Documentation.md 项目API文档
+- README.md 项目介绍文件
+- build.bat 编译脚本
+# 项目使用
+1. 编译
+- windows环境下双击build.bat文件即可编译
+- 或者直接在命令行里运行g++ -std=c++11 main.cpp maze.cpp Create.cpp Search.cpp -o maze_program
+2. 模拟
+- 直接打开生成的程序文件 输入 地图x 地图x 生成算法 寻路算法 即可开始模拟
+- 或者提供命令行参数 [程序名] [地图x] [地图y] [生成算法] [寻路算法] 直接运行程序
