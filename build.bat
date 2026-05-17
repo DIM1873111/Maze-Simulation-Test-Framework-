@@ -1,1 +1,0 @@
-g++ -std=c++11 main.cpp maze.cpp Create.cpp Search.cpp -o maze_program
