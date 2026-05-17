@@ -1,0 +1,1 @@
+g++ -std=c++17 -I"C:\Users\29915\Desktop\SFML-3.1.0\include" -L"C:\Users\29915\Desktop\SFML-3.1.0\lib" main.cpp maze.cpp Create.cpp Search.cpp -o maze_program -lsfml-graphics -lsfml-window -lsfml-system -lopengl32 -lgdi32 -lwinmm
