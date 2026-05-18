@@ -144,8 +144,83 @@ void Maze_AI::maae_data_initialization(){//显示菜单(交互模式启动)
    Algorithm_selection(Generation,Pathfinding);
 }
 
-
 //主要渲染函数
+
+void Maze_AI::Processing_window(){//处理窗口事件
+while (const std::optional<sf::Event> event = window.pollEvent()){
+    if (event->is<sf::Event::Closed>()){//如果点击了窗口关闭
+        window.close();
+        Log_stream << "Window closed, stop the program";
+        Log_output(Log_stream.str(),Log_Warning);
+        exits("Program closed",Exit_early);
+        Log_stream_Clear();//清空日志流      
+        }
+        if (const auto* keyPressed = event->getIf<sf::Event::KeyPressed>()){
+            
+        switch (keyPressed->code)
+        {
+        case sf::Keyboard::Key::Space:
+            Pause_Status = !Pause_Status;
+            Log_stream << "Paused state[" << Pause_Status << "]";
+            Log_output(Log_stream.str(),Log_Warning);
+            break;
+        case sf::Keyboard::Key::Escape:
+            ESC_Exit_Status = true;
+            break;
+        case sf::Keyboard::Key::Hyphen:
+            Accelerate_Status = true;
+            break;
+        case sf::Keyboard::Key::Equal:
+            Decelerate_Status = true;
+            break;
+
+        default:
+            break;
+        }
+
+        }
+    }
+}
+
+void Maze_AI::Interactive_State_window(){
+while(true){//暂停功能循环
+
+    if(ESC_Exit_Status){
+        window.close();
+        Log_stream << "ESC closes the window";
+        Log_output(Log_stream.str(),Log_Warning);
+        exits("Program closed",Exit_early);
+    }
+
+    if (Accelerate_Status){
+        Rendering_speed = Rendering_speed+Speed_Adjustment;//渲染速度加快
+        if(Rendering_speed>Maximum_speed){Rendering_speed = Maximum_speed;}//最大渲染速度限制
+        Log_stream << "Speed Adjustment[" << Rendering_speed << "]";
+        Log_output(Log_stream.str(),Log_Warning);
+        Accelerate_Status = false;
+    }
+
+    if (Decelerate_Status){
+        Rendering_speed = Rendering_speed-Speed_Adjustment;//渲染速度加慢
+        if(Rendering_speed<Minimum_speed){Rendering_speed = Minimum_speed;}//最小渲染速度限制
+        Log_stream << "Speed Adjustment[" << Rendering_speed << "]";
+        Log_output(Log_stream.str(),Log_Warning);
+        Decelerate_Status = false;
+    }
+
+    if (Pause_Status){//暂停功能
+    Pause_Status = true;//开始暂停
+    }else if (!Pause_Status){
+    Pause_Status = false;//解除暂停
+    }
+
+    if(!Pause_Status){break;}//没有暂停退出循环
+    sf::sleep(sf::milliseconds(10));//检查间隔
+    Processing_window();//处理窗口数据(刷新状态)
+    }
+}
+
+
 void Maze_AI::Map_loading(std::string mapdata){//迷宫渲染
 
 auto Start_Time_Current = std::chrono::duration_cast<std::chrono::seconds>(
@@ -155,37 +230,72 @@ Time_Duration = Time_Current - Start_Time;
 
 sf::RectangleShape square;//方块(地图数据)
 
-while (const std::optional<sf::Event> event = window.pollEvent())
-{//处理窗口事件
-    if (event->is<sf::Event::Closed>())
-        window.close();
-    if (!window.isOpen()) {
+/*
+while (const std::optional<sf::Event> event = window.pollEvent()){//处理窗口事件
+    while(true){
+
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Space) && !Pause_Status){
+        Pause_Status = true;//暂停功能
+    }else  if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Space) && Pause_Status){
+    Pause_Status = false;//解除暂停功能
+    }
+
+    if (event->is<sf::Event::Closed>()){
+        window.close();        
+    }
+    if (!window.isOpen()) {//如果窗口关闭
     exits("Program closed",Exit_early);
     }
+
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Escape)){
+        //std::cout << "检测到ESC键，退出程序" << std::endl;
+        window.close();
+        exits("Program closed",Exit_early);
+    }
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Hyphen)) {
+        Rendering_speed = Rendering_speed+Speed_Adjustment;//渲染速度加快
+        if(Rendering_speed>Maximum_speed){Rendering_speed = Maximum_speed;}//最大渲染速度限制
+        Log_stream << "Speed Adjustment[" << Rendering_speed << "]:";
+        Log_output(Log_stream.str(),Log_Warning);
+        Log_stream_Clear();
+    }
+
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Equal)) {
+        Rendering_speed = Rendering_speed-Speed_Adjustment;//渲染速度加慢
+        if(Rendering_speed<Minimum_speed){Rendering_speed = Minimum_speed;}//最小渲染速度限制
+        Log_stream << "Speed Adjustment[" << Rendering_speed << "]:";
+        Log_output(Log_stream.str(),Log_Warning);
+        Log_stream_Clear();
+        }
+        
+
+
+        if(!Pause_Status){break;}//暂停功能结束
+        sf::sleep(sf::milliseconds(10));//检查间隔
+    }
 }
-//window.clear();//清空窗口
+*/
 for(int i = 0;i<Ymax;i++){//导入显示数据
     for(int j = 0;j<Xmax;j++){
-        Render_cout(i,j);
+        Render_cout(i,j);//写入地图数据
         }
     }
     //渲染地图
-
+Processing_window();//窗口刷新(处理窗口关闭等情况)
+Interactive_State_window();//处理交互信息
+sf::sleep(sf::milliseconds(Rendering_speed));//渲染间隔
 for(int i = 0;i<Ymax;i++){//渲染
     for(int j = 0;j<Xmax;j++){
-        square.setSize(sf::Vector2f(Rendering_map[i][j].size, Rendering_map[i][j].size));
-        square.setFillColor(Rendering_map[i][j].color);
-        square.setPosition({j*Proportion,i*Proportion});
+        square.setSize(sf::Vector2f(Rendering_map[i][j].size, Rendering_map[i][j].size));//方块大小
+        square.setFillColor(Rendering_map[i][j].color);//方块颜色
+        square.setPosition({j*Proportion,i*Proportion});//方块位置(地图坐标)
         window.draw(square);//绘制方块
         }
-    }window.display();
+    }
+    window.display();//显示窗口
 
-
-    sf::sleep(sf::milliseconds(Rendering_speed));//刷新间隔
-    //std::cout<< "Current.\033[4m"<< mapdata << "\033[0m\033[2m[" <<Time_Duration<<"/S]"<<"\033[0m\n";
     std::stringstream Log_1;
     std::stringstream Log_2;
-    //Log_1 << "Refresh Rendering." << "Runtime[" <<Time_Duration<<"/S]";
     Log_1 << "Progress." << mapdata;
     Log_output(Log_1.str(),Log_Information);
     
@@ -194,41 +304,29 @@ for(int i = 0;i<Ymax;i++){//渲染
 void Maze_AI::Render_cout(int y,int x){
 switch(maze_map[y][x]){
     case Maze_empty_Enum://空
-    Rendering_map[y][x] = {Proportion,sf::Color(0, 0, 0)};
-    break;
+    Rendering_map[y][x] = {Proportion,sf::Color(0, 0, 0)};break;
     case Maze_walls_Enum:
-    Rendering_map[y][x] = {Proportion,sf::Color::White};
-    break;
+    Rendering_map[y][x] = {Proportion,sf::Color::White};break;
     case Maze_Destination:
-    Rendering_map[y][x] = {Proportion,sf::Color::Red};
-    break;
+    Rendering_map[y][x] = {Proportion,sf::Color::Red};break;
     case Maze_Starting_point:
-    Rendering_map[y][x] = {Proportion,sf::Color::Blue};
-    break;
+    Rendering_map[y][x] = {Proportion,sf::Color::Blue};break;
     case Maze_aipath_Enum:
-    Rendering_map[y][x] = {Proportion,sf::Color::Green};//sf::Color::Green绿色
-    break;
+    Rendering_map[y][x] = {Proportion,sf::Color::Green};break;
     case Maze_Shortest_route:
-    Rendering_map[y][x] = {Proportion,sf::Color::Magenta};
-    break;
+    Rendering_map[y][x] = {Proportion,sf::Color::Magenta};break;
     case Maze_Searching_Traces1:
-    Rendering_map[y][x] = {Proportion,sf::Color(192,192,192)};
-    break;
+    Rendering_map[y][x] = {Proportion,sf::Color(192,192,192)};break;
     case Maze_Searching_Traces2:
-    Rendering_map[y][x] = {Proportion,sf::Color(64,64,64)};
-    break;
+    Rendering_map[y][x] = {Proportion,sf::Color(64,64,64)};break;
     case Gold_Coin_Special:
-    Rendering_map[y][x] = {10,sf::Color(255,215,0)};
-    break;
+    Rendering_map[y][x] = {10,sf::Color(255,215,0)};break;
     case Scan_Mark:
-    Rendering_map[y][x] = {Proportion,sf::Color(80,80,80)};
-    break;
+    Rendering_map[y][x] = {Proportion,sf::Color(80,80,80)};break;
     case Gold_Coin_Tag:
-    Rendering_map[y][x] = {10,sf::Color(255,215,0)};
-    break;
+    Rendering_map[y][x] = {10,sf::Color(255,215,0)};break;
     default://未知数据
-    Rendering_map[y][x] = {5,sf::Color(255, 255, 255)};
-    break;
+    Rendering_map[y][x] = {5,sf::Color(255, 255, 255)};break;
     } 
 }
 
@@ -248,8 +346,6 @@ if(Search>=Algorithm_Library_Search.size() || Search<0){
 if(Algorithm_Library_Create[Create].Type!=Algorithm_Library_Search[Search].Type){
     exits("The type of the two algorithms does not match",Error_exit);
 }
-//int Cursor = Algorithm_Library_Search.size()*2+Algorithm_Library_Create.size()*2 + 2;
-//std::cout << "\033[" << Cursor << "A";
 
 //记录选择的算法(结算数据时使用)
 Select_Create = Create;
@@ -259,14 +355,15 @@ Select_Search = Search;
     std::stringstream Current_content_1;
     std::stringstream Current_content_2;
     std::stringstream Current_content;//窗口标题
-
+    float Window_width = Xmax*Proportion;
+    float Window_height = Ymax*Proportion;
     Current_content_1 << Algorithm_Library_Create[Select_Create].Name << "and" << Algorithm_Library_Search[Select_Search].Name;
-    window = sf::RenderWindow(sf::VideoMode({Xmax*Proportion,Ymax*Proportion}), Current_content_1.str());
+    window = sf::RenderWindow(sf::VideoMode({static_cast<unsigned int>(Window_width),static_cast<unsigned int>(Window_height)}), Current_content_1.str());
 
     Current_content << "Start generating:" << Algorithm_Library_Create[Create].Name ;
     Log_output(Current_content.str(),Log_Information);
 
-    Algorithm_Library_Create[Create].Run();//生成    
+    Algorithm_Library_Create[Create].Run();//生成
     End_Point();//终起xy位置初始化
 
     Current_content_2 << "Start searching:" << Algorithm_Library_Search[Search].Name ;
@@ -289,14 +386,12 @@ void Maze_AI::Log_stream_Clear(){//清空日志流
 bool Maze_AI::Boundary_check(int x,int y){//边界检查
     Log_stream << "Boundary_check[" << x << "," << y << "]:" << (x < Xmax && x >= 0 && y < Ymax && y >= 0);
     Log_output(Log_stream.str(),Log_Information);
-    Log_stream_Clear();
     return (x < Xmax && x >= 0 && y < Ymax && y >= 0);
 }
 
 bool Maze_AI::Check_index(int Index){
     Log_stream << "Index_check[" << Index << "]:" << (Index >= 0) && (Index + 1 <= Xmax * Ymax);
     Log_output(Log_stream.str(),Log_Information);
-    Log_stream_Clear();
     return (Index >= 0) && (Index + 1 <= Xmax * Ymax);
 }
 
@@ -304,8 +399,7 @@ void Maze_AI::Mark_Trace(int x,int y,int Type){//快捷标记
     if(Boundary_check(x,y)){
     maze_map[y][x]=Type;
     Log_stream << "Changed[" << x << "," << y << "]:" << Type;
-    Log_output(Log_stream.str(),Log_Information);
-    Log_stream_Clear();   
+    Log_output(Log_stream.str(),Log_Information);   
     }else{
     Log_stream << "Setting failed[" << x << "," << y << "]:" << Type;
     Log_output(Log_stream.str(),Log_Warning);//设置失败
@@ -317,7 +411,6 @@ int Maze_AI::Location_Marker(int x,int y){//返回位置标记
     if(Boundary_check(x,y)){
     Log_stream << "Get data[" << x << "," << y << "]:" << maze_map[y][x];
     Log_output(Log_stream.str(),Log_Information);
-    Log_stream_Clear();
     return maze_map[y][x];
     }else{
         Log_stream << "Failed to obtain[" << x << "," << y << "]:" << "null";
@@ -334,26 +427,22 @@ bool Maze_AI::Tag_Information(int x,int y,int Type){//检查特定标记
     }
     Log_stream << "Check location data[" << x << "," << y << "]:" << (maze_map[y][x]==Type);
     Log_output(Log_stream.str(),Log_Information);
-    Log_stream_Clear();
     return (maze_map[y][x]==Type);
 }
 int Maze_AI::X_Map_Max(){
 Log_stream << "Get data[" <<"Xmax:" << Xmax << "]";
 Log_output(Log_stream.str(),Log_Information);
-Log_stream_Clear();
 return Xmax;
 }
 int Maze_AI::Y_Map_Max(){
 Log_stream << "Get data[" <<"Ymax:" << Ymax << "]";
 Log_output(Log_stream.str(),Log_Information);
-Log_stream_Clear();
 return Ymax;
 }
 void Maze_AI::Set_destination(int Index){
 if(Check_index(Index)){
 Log_stream << "Set destination[" <<"Index:" << Index << "]";
 Log_output(Log_stream.str(),Log_Information);
-Log_stream_Clear();
 Destination=Index;
     }else{
 Log_stream << "Failed to set destination[" <<"Index:" << Index << "]";
@@ -365,7 +454,6 @@ void Maze_AI::Set_Starting_point(int Index){
 if(Check_index(Index)){
 Log_stream << "Set starting point[" <<"Index:" << Index << "]";
 Log_output(Log_stream.str(),Log_Information);
-Log_stream_Clear();
 Starting_point=Index;
     }else{
 Log_stream << "Failed to set starting point[" <<"Index:" << Index << "]";
@@ -376,32 +464,27 @@ exits("Exceeding the map boundaries when setting the starting point",Error_exit)
 int Maze_AI::Obtain_destination(){
 Log_stream << "SGet data(destination)[" <<"Index:" << Destination << "]";
 Log_output(Log_stream.str(),Log_Information);
-Log_stream_Clear();
     return Destination;
 }
 int Maze_AI::Obtain_Starting_point(){
 Log_stream << "Get data(starting point)[" <<"Index:" << Starting_point << "]";
 Log_output(Log_stream.str(),Log_Information);
-Log_stream_Clear();
     return Starting_point;
 }
 bool Maze_AI::Check_Destination(int x,int y){
 Log_stream << "Check position endpoint[" << x << "," << y << "]:" << (Destination_X==x && Destination_Y==y);
 Log_output(Log_stream.str(),Log_Information);
-Log_stream_Clear();
 return (Destination_X==x && Destination_Y==y);
 }
 bool Maze_AI::Check_starting_point(int x,int y){
 Log_stream << "Check starting position[" << x << "," << y << "]:" << (Starting_point_X==x && Starting_point_Y==y);
 Log_output(Log_stream.str(),Log_Information);
-Log_stream_Clear();
 return (Starting_point_X==x && Starting_point_Y==y);
 }
 int Maze_AI::Get_indexX(int Index){
 if(Check_index(Index)){
 Log_stream << "Get data(Index:X)[" << Index << "]:" << Index%Xmax;
 Log_output(Log_stream.str(),Log_Information);
-Log_stream_Clear();
     return Index%Xmax;
 }else{
     Log_stream << "Failed to obtain(Index:X)[" << Index << "]:" << Index%Xmax;
@@ -414,7 +497,6 @@ int Maze_AI::Get_indexY(int Index){
 if(Check_index(Index)){
 Log_stream << "Get data(Index:Y)[" << Index << "]:" << Index/Xmax;
 Log_output(Log_stream.str(),Log_Information);
-Log_stream_Clear();
     return Index/Xmax;
 }else{
     Log_stream << "Failed to obtain(Index:Y)[" << Index << "]:" << Index/Xmax;
@@ -443,26 +525,21 @@ std::cout << "Time["<<Time_Duration<<"/s]["<< Xmax << "*" << Ymax << "]\033[94m[
 }
 
 void Maze_AI::Log_output(std::string message,Log_Type Type){//日志输出
-
     std::cout << "[" <<Time_Duration<<"s]" ;//输出时间
-
-
     switch (Type)// 输出日志类型
     {
     case Log_Error:
-        std::cout << "\033[31m[!]\033[0m" << message ;
-        break;
+        std::cout << "\033[31m[!]\033[0m" << message;break;
         case Log_Warning:
-        std::cout << "\033[33m[?]\033[0m" << message ;
-        break;
+        std::cout << "\033[33m[*]\033[0m" << message;break;
         case Log_Information:
-        std::cout << "\033[32m[i]\033[0m" << message ;
-        break;
+        std::cout << "\033[32m[i]\033[0m" << message;break;
         default://未知类型
-        std::cout << "\033[32m[?]\033[0m" << message ;
-        break;
+        std::cout << "\033[32m[?]\033[0m" << message;break;
+        
     }
     std::cout << std::endl;//换行
+    Log_stream_Clear();//清空日志流
 }
 
 void Maze_AI::exits(std::string Error_message,int Exit_Type){//错误处理
@@ -477,6 +554,7 @@ std::cout << "\033[2m[i]\033[0mProgram exit.-->\033[4m"<< Error_message << "\033
 break;
 
 default:
+std::cout << "\033[31m[?]\033[0mUnknown error.-->\033[4m"<< Error_message << "\033[0m";
     break;
 }
 exit(0);//程序退出

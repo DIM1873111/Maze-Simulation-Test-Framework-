@@ -22,8 +22,17 @@ int Starting_point_X;//起点X
 int Starting_point_Y;//起点Y
 
 float Proportion = 20;//缩放比例
+
 int Rendering_speed = 50;//渲染速度
+int Minimum_speed = 10;//最快渲染速度
+int Maximum_speed = 300;//最慢渲染速度
+int Speed_Adjustment = 10;//渲染速度调节(大小)
 sf::RenderWindow window;//创建窗口
+
+bool Pause_Status = false;//暂停状态
+bool ESC_Exit_Status = false;//ESC退出状态
+bool Accelerate_Status = false;//加速状态
+bool Decelerate_Status = false;//减速状态
 
 
 int mapMax;
@@ -33,7 +42,7 @@ int Time_Duration;//运行时间
 
 int Select_Create;//用户选择的生成算法
 int Select_Search;//用户选择的搜索算法
-std::string Project_Version = "V3.1.01(Graphical)";//项目版本
+std::string Project_Version = "V3.2.12(Graphical)";//项目版本
 std::stringstream Log_stream;//日志流
 
 std::vector<std::vector<int>> maze_map;//地图数据
@@ -72,7 +81,7 @@ Exit_early = true,//正常提前退出
 
 enum Log_Type{
 Log_Error = 0,//错误日志
-Log_Warning = 1,//警告日志
+Log_Warning = 1,//警告日志(配项调整等等)
 Log_Information = 2,//信息日志
 };
 
@@ -81,6 +90,9 @@ Log_Information = 2,//信息日志
 void maae_data_initialization();
 
 void Display_Destination_Starting_point();
+
+void Processing_window();//处理窗口渲染
+void Interactive_State_window();////处理交互
 
 
 void Render_cout(int y,int x);//初始化渲染内容
