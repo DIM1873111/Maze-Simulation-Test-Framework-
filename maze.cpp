@@ -230,51 +230,6 @@ Time_Duration = Time_Current - Start_Time;
 
 sf::RectangleShape square;//方块(地图数据)
 
-/*
-while (const std::optional<sf::Event> event = window.pollEvent()){//处理窗口事件
-    while(true){
-
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Space) && !Pause_Status){
-        Pause_Status = true;//暂停功能
-    }else  if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Space) && Pause_Status){
-    Pause_Status = false;//解除暂停功能
-    }
-
-    if (event->is<sf::Event::Closed>()){
-        window.close();        
-    }
-    if (!window.isOpen()) {//如果窗口关闭
-    exits("Program closed",Exit_early);
-    }
-
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Escape)){
-        //std::cout << "检测到ESC键，退出程序" << std::endl;
-        window.close();
-        exits("Program closed",Exit_early);
-    }
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Hyphen)) {
-        Rendering_speed = Rendering_speed+Speed_Adjustment;//渲染速度加快
-        if(Rendering_speed>Maximum_speed){Rendering_speed = Maximum_speed;}//最大渲染速度限制
-        Log_stream << "Speed Adjustment[" << Rendering_speed << "]:";
-        Log_output(Log_stream.str(),Log_Warning);
-        Log_stream_Clear();
-    }
-
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Equal)) {
-        Rendering_speed = Rendering_speed-Speed_Adjustment;//渲染速度加慢
-        if(Rendering_speed<Minimum_speed){Rendering_speed = Minimum_speed;}//最小渲染速度限制
-        Log_stream << "Speed Adjustment[" << Rendering_speed << "]:";
-        Log_output(Log_stream.str(),Log_Warning);
-        Log_stream_Clear();
-        }
-        
-
-
-        if(!Pause_Status){break;}//暂停功能结束
-        sf::sleep(sf::milliseconds(10));//检查间隔
-    }
-}
-*/
 for(int i = 0;i<Ymax;i++){//导入显示数据
     for(int j = 0;j<Xmax;j++){
         Render_cout(i,j);//写入地图数据
