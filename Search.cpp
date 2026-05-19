@@ -423,7 +423,7 @@ distance_a[seaY][seaX] = 0;   //起点距离为0
 distance_b[seaY1][seaX1] = 0; //终点距离为0
 
 int poor_road = abs(seaX1 - seaX) + abs(seaY1 - seaY); //估测(终点/起点)距离
-
+int poor_road_1 = abs(seaX - seaX1) + abs(seaY - seaY1); //估测(起点/终点)距离
 int Found_you = 0; //是否找到对方的标记
 
 Record_List_A.push_back({poor_road, 0, poor_road, seaX, seaY}); //导入起点
@@ -479,7 +479,7 @@ while (Record_List_A.size() || Record_List_B.size()) {
             maze.Mark_Trace(NewX_a, NewY_a, maze.Maze_Searching_Traces1);
 
             distance_a[NewY_a][NewX_a] = distance_a[PositionY_A][PositionX_A] + 1; //实际已走距离
-            int Guidewire_H = abs(seaX - NewX_a) + abs(seaY - NewY_a);             //估测距离
+            int Guidewire_H = abs(seaX1 - NewX_a) + abs(seaY1 - NewY_a);             //估测距离
             Record_List_A.push_back({Guidewire_H, distance_a[NewY_a][NewX_a], Guidewire_H + distance_a[NewY_a][NewX_a], NewX_a, NewY_a});
         }
     }
