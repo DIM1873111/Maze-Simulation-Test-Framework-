@@ -13,6 +13,13 @@ Maze_Simulation.add_Create(
     [&Maze_Simulation]() { Maze_Factory(Maze_Simulation); },
     100 
 );
+Maze_Simulation.add_Create(
+    "Prim[0.0.8]",
+    "adaptation framework[v1.1]",
+    [&Maze_Simulation]() { generateMazeByPrim(Maze_Simulation); },
+    100
+);
+
 Maze_Simulation.add_Search(
     "BFS[0.0.9]",
     "adaptation framework[v1.1]",

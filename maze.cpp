@@ -54,24 +54,6 @@ std::chrono::system_clock::now().time_since_epoch()
 Start_Time = Start_Time_void.count();
 }
 
-/*
-std::string Maze_AI::GetFormattedTime(){// 获取格式化时间字符串
-    // 将时间戳转换为time_t
-    std::time_t t = static_cast<time_t>(Start_Time);
-    
-    // 转换为本地时间结构
-    std::tm* local_time = std::localtime(&t);
-    
-    // 格式化为字符串
-    std::stringstream ss;
-    ss << std::setfill('0') << std::setw(2) << local_time->tm_hour << ":"
-       << std::setfill('0') << std::setw(2) << local_time->tm_min << ":"
-       << std::setfill('0') << std::setw(2) << local_time->tm_sec;
-    
-    return ss.str();//输出格式化时间字符串[hh:mm:ss]
-}
-*/
-
 void Maze_AI::End_Point(){//终起xy位置初始化
 Starting_point_Y = Starting_point/Xmax;
 Starting_point_X = Starting_point-Starting_point_Y*Xmax;
@@ -79,8 +61,6 @@ Starting_point_X = Starting_point-Starting_point_Y*Xmax;
 Destination_Y = Destination/Xmax;
 Destination_X = Destination-Destination_Y*Xmax;
 }
-
-
 
 //数据初始化以及算法选择函数实现
 void Maze_AI::Parameter_Start_data(int Parameter,char* mapdata[]){//启动模式选择(参数模式启动)(数据初始化)
@@ -148,15 +128,19 @@ void Maze_AI::maae_data_initialization(){//显示菜单(交互模式启动)
 
 void Maze_AI::Processing_window(){//处理窗口事件
 while (const std::optional<sf::Event> event = window.pollEvent()){
-    if (event->is<sf::Event::Closed>()){//如果点击了窗口关闭
+    if(event->is<sf::Event::Closed>()){//如果点击了窗口关闭
         window.close();
         Log_stream << "Window closed, stop the program";
         Log_output(Log_stream.str(),Log_Warning);
-        exits("Program closed",Exit_early);
-        Log_stream_Clear();//清空日志流      
+        exits("Program closed",Exit_early);    
         }
-        if (const auto* keyPressed = event->getIf<sf::Event::KeyPressed>()){
-            
+        if(!window.isOpen()){//窗口意外关闭
+            Log_stream << "The window was closed";
+            Log_output(Log_stream.str(),Log_Warning);
+        exits("Program closed",Exit_early);
+        }
+
+        if (const auto* keyPressed = event->getIf<sf::Event::KeyPressed>()){//如果按下了键盘
         switch (keyPressed->code)
         {
         case sf::Keyboard::Key::Space:
@@ -250,10 +234,8 @@ for(int i = 0;i<Ymax;i++){//渲染
     window.display();//显示窗口
 
     std::stringstream Log_1;
-    std::stringstream Log_2;
     Log_1 << "Progress." << mapdata;
     Log_output(Log_1.str(),Log_Information);
-    
 }
 
 void Maze_AI::Render_cout(int y,int x){
@@ -329,11 +311,6 @@ Select_Search = Search;
 
     Settlement();//结算数据
     window.close();//关闭窗口
-}
-
-void Maze_AI::Log_stream_Clear(){//清空日志流
-    Log_stream.str("");
-    Log_stream.clear();    
 }
 
 //工具函数实现
@@ -494,7 +471,8 @@ void Maze_AI::Log_output(std::string message,Log_Type Type){//日志输出
         
     }
     std::cout << std::endl;//换行
-    Log_stream_Clear();//清空日志流
+    Log_stream.str("");
+    Log_stream.clear();
 }
 
 void Maze_AI::exits(std::string Error_message,int Exit_Type){//错误处理

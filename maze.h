@@ -36,14 +36,14 @@ bool Decelerate_Status = false;//减速状态
 
 
 int mapMax;
-int Start_Time;
+int Start_Time;//运行时间计时器
 
 int Time_Duration;//运行时间
 
 int Select_Create;//用户选择的生成算法
 int Select_Search;//用户选择的搜索算法
-std::string Project_Version = "V3.2.12(Graphical)";//项目版本
-std::stringstream Log_stream;//日志流
+std::string Project_Version = "V3.2.15(Graphical)";//项目版本
+
 
 std::vector<std::vector<int>> maze_map;//地图数据
 
@@ -97,12 +97,9 @@ void Interactive_State_window();////处理交互
 
 void Render_cout(int y,int x);//初始化渲染内容
 
-void Log_stream_Clear();//重置日志内容
 
-//int Get_cursor_position();
 //初始化函数
 void End_Point();//终起xy初始化(运行完生成算法后)
-//void Load_algorithm_library();//初始化列表(在新版本里已废弃)
 void Startrunning_Time_Timer();//时间初始化
 //std::string GetFormattedTime();//时间格式化[hh:mm:ss]
 void exits(std::string Error_message,int Exit_Type = Error_exit);//退出函数
@@ -113,7 +110,7 @@ void Settlement();//结算数据
 
 void Log_output(std::string message,Log_Type Type);
 public://公有
-
+std::stringstream Log_stream;//日志流
 enum Mazemapdata{//地图数据枚举
     //标记类
 Maze_Destination=-1,//终点
@@ -130,7 +127,6 @@ Maze_Searching_Traces1=3,//寻找痕迹1
 Maze_Searching_Traces2=4,//寻找痕迹2
 Maze_Shortest_route=5,//最短路线标记
 };
-
 //工具函数
 bool Boundary_check(int x,int y);//检查边界是否合法
 bool Check_index(int Index);//检查索引是否合法
@@ -155,7 +151,6 @@ int Get_indexY(int Index);//计算引索对应的Y坐标
 void add_Create(std::string Name,std::string Introduction,std::function<void()> Run,int Type);//添加创造库
 void add_Search(std::string Name,std::string Introduction,std::function<void()> Run,int Type);//添加搜索库
 void Map_loading(std::string mapdata);//刷新地图
-
 
 //主函数
 

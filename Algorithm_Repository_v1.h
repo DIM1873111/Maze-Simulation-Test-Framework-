@@ -9,6 +9,8 @@
 class Maze_AI;
 
 void Maze_Factory(Maze_AI& maze);
+void generateMazeByPrim(Maze_AI& maze);
+
 void Maze_pathfinding(Maze_AI& maze);
 void Bidirectional_BFS(Maze_AI& maze);
 void Search_Algorithm_Algorithm_A(Maze_AI& maze);
