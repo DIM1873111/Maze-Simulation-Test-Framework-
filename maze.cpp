@@ -75,8 +75,6 @@ int
 sea = std::stoi(mapdata[3]),
 cre = std::stoi(mapdata[4]);
 
-maze_map.assign(Ymax, std::vector<int>(Xmax,Maze_walls_Enum));
-Rendering_map.assign(Ymax, std::vector<CircleData>(Xmax));//渲染数据缓存
 Algorithm_selection(sea,cre);
 }else if(Parameter >= 2){
 std::cout << "The parameters you provided are insufficient. Startup method:" << std::endl;
@@ -118,9 +116,6 @@ void Maze_AI::maae_data_initialization(){//显示菜单(交互模式启动)
     }else{
         exits("The size you entered is too small X|Y",Error_exit);
         }
-    //Cursor_position = Algorithm_Library_Create.size()*2+Algorithm_Library_Search.size()*2 + 2;
-   maze_map.assign(Ymax, std::vector<int>(Xmax,Maze_walls_Enum));  //初始值0
-   Rendering_map.assign(Ymax, std::vector<CircleData>(Xmax));//渲染数据缓存
    Algorithm_selection(Generation,Pathfinding);
 }
 
@@ -271,8 +266,18 @@ switch(maze_map[y][x]){
 
 void Maze_AI::Algorithm_selection(int Create,int Search){//算法启动以及数据检查
 //检查数据合理性    
-if(Ymax<4 || Xmax<4){
-exits("XY map data error [XY<4]",Error_exit);
+if(Ymax<4 || Xmax<4 || Ymax>300 || Xmax>300){
+exits("XY map data error [XY<4][XY>200]",Error_exit);
+}else if(Ymax >= 80 || Xmax >= 80){//调整缩放比例
+    int Ymax_Proportion = Ymax , Xmax_Proportion = Xmax;
+    while(Ymax_Proportion >= 80 || Xmax_Proportion >= 80){
+    Proportion = Proportion/2;//调整缩放比例
+    Ymax_Proportion = Ymax_Proportion/2;
+    Xmax_Proportion = Xmax_Proportion/2;
+    }
+
+    Log_stream << "Adjusted proportion[" << Proportion << "]";
+    Log_output(Log_stream.str(),Log_Warning);
 }
 if(Create>=Algorithm_Library_Create.size() || Create<0){
     exits("Cannot find the create algorithm library",Error_exit);
@@ -287,13 +292,15 @@ if(Algorithm_Library_Create[Create].Type!=Algorithm_Library_Search[Search].Type)
 //记录选择的算法(结算数据时使用)
 Select_Create = Create;
 Select_Search = Search;
+//初始化数据
+maze_map.assign(Ymax, std::vector<int>(Xmax,Maze_walls_Enum));  //地图初始值0
+Rendering_map.assign(Ymax, std::vector<CircleData>(Xmax));//渲染数据缓存
+Log_output("======Initialized the map data======",Log_Information);
 
     //窗口启动
-    std::stringstream Current_content_1;
-    std::stringstream Current_content_2;
-    std::stringstream Current_content;//窗口标题
-    float Window_width = Xmax*Proportion;
-    float Window_height = Ymax*Proportion;
+    std::stringstream Current_content,Current_content_1,Current_content_2;
+    int Window_width = Xmax*Proportion;
+    int Window_height = Ymax*Proportion;
     Current_content_1 << Algorithm_Library_Create[Select_Create].Name << "and" << Algorithm_Library_Search[Select_Search].Name;
     window = sf::RenderWindow(sf::VideoMode({static_cast<unsigned int>(Window_width),static_cast<unsigned int>(Window_height)}), Current_content_1.str());
 
@@ -303,7 +310,7 @@ Select_Search = Search;
     Algorithm_Library_Create[Create].Run();//生成
     End_Point();//终起xy位置初始化
 
-    Current_content_2 << "Start searching:" << Algorithm_Library_Search[Search].Name ;
+    Current_content_2 << "Start searching:" << Algorithm_Library_Search[Search].Name;
     Log_output(Current_content_2.str(),Log_Information);
 
     Algorithm_Library_Search[Search].Run();//搜索
