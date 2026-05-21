@@ -19,6 +19,13 @@ Maze_Simulation.add_Create(
     [&Maze_Simulation]() { generateMazeByPrim(Maze_Simulation); },
     100
 );
+//Recursive_Division
+Maze_Simulation.add_Create(
+    "Recursive_Division[0.0.7]",
+    "adaptation framework[v1.1]",
+    [&Maze_Simulation]() { Recursive_Division(Maze_Simulation); },
+    100
+);
 
 Maze_Simulation.add_Search(
     "BFS[0.0.9]",
@@ -74,6 +81,8 @@ Maze_Simulation.add_Search(
     [&Maze_Simulation]() { Search_Algorithm_JPS(Maze_Simulation); },
    100
 );
+
+
 Maze_Simulation.Parameter_Start_data(argc,argv);//模式选择(主函数)
 
 return 0;

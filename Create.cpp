@@ -50,10 +50,6 @@ for(int i=0;i<4;i++){
 
 if(Dead_end){Search_data.erase(Search_data.begin()+last_item);}
     }
-int YStarting_point = maze.Obtain_Starting_point()/maze.X_Map_Max();//加载起点(Y)
-int YDestination = maze.Obtain_destination()/maze.X_Map_Max();//加载终点(Y)
-maze.Mark_Trace(maze.Obtain_Starting_point()-(YStarting_point*maze.X_Map_Max()),YStarting_point,maze.Maze_Starting_point);
-maze.Mark_Trace(maze.Obtain_destination()-(YDestination*maze.X_Map_Max()),YDestination,maze.Maze_Destination);
 }
 
 void generateMazeByPrim(Maze_AI& maze){//生成迷宫(Prim算法)
@@ -101,16 +97,109 @@ if(maze.Boundary_check(Handle_X,Handle_Y) && !maze.Location_Marker(Handle_X,Hand
 }
 maze.Set_destination(Finish);//设置终点
 
-maze.Mark_Trace(
-    maze.Get_indexX(maze.Obtain_destination()),
-    maze.Get_indexY(maze.Obtain_destination()),
-    maze.Maze_Destination
-);
+}
 
-maze.Mark_Trace(
-    maze.Get_indexX(maze.Obtain_Starting_point()),
-    maze.Get_indexY(maze.Obtain_Starting_point()),
-    maze.Maze_Starting_point
-);
+void Recursive_Division(Maze_AI& maze){//生成迷宫(递归分割)
+int Xmax = maze.X_Map_Max()-1;
+int Ymax = maze.Y_Map_Max()-1;
+for(int i = 0;i<Ymax+1;i++){//清理一整个地图
+    for(int j = 0;j<Xmax+1;j++){
+    maze.Mark_Trace(j,i,maze.Maze_empty_Enum);
+    }
+}
 
+struct Rect {
+    int left;   // 左上角 X
+    int top;    // 左上角 Y
+
+    int right;  // 右下角 X
+    int bottom; // 右下角 Y
+};
+
+std::vector<Rect> Blocks;
+Blocks.push_back({0,0,Xmax,Ymax});
+while(Blocks.size()){
+int blosize = Blocks.size()-1;
+
+int left = Blocks[blosize].left;// 左上角 X
+int top = Blocks[blosize].top;// 左上角 Y
+
+int right = Blocks[blosize].right;// 右下角 X
+int bottom = Blocks[blosize].bottom;// 右下角 Y
+
+
+int width  = right - left + 1; // 宽
+int height = bottom - top + 1; // 高
+
+
+if (width >= 3 && height >= 3){
+if(width > height){// 垂直切
+
+int tangent_point_X = maze.Random_number(left+1,right-1);//获取垂直切割点(X)
+
+for(int i=top+1;i<=bottom-1;i++){
+    maze.Mark_Trace(tangent_point_X,i,maze.Maze_walls_Enum);//切开(墙壁)
+}
+int Open_thedoor_Y = maze.Random_number(top + 1,bottom -1);//开门的位置(垂直)(Y)
+maze.Mark_Trace(tangent_point_X, Open_thedoor_Y, maze.Maze_empty_Enum);//开门
+
+Blocks.push_back({//分裂块
+    left,
+    top,
+    tangent_point_X-1,
+    bottom
+});
+Blocks.push_back({
+    tangent_point_X+1,
+    top,
+    right,
+    bottom
+});
+
+}else{// 水平切
+
+int tangent_point_Y = maze.Random_number(top+1,bottom-1);//获取水平切割点(X)
+
+for(int i=left+1;i<=right-1;i++){
+    maze.Mark_Trace(i,tangent_point_Y,maze.Maze_walls_Enum);//切开(墙壁)
+}
+int Open_thedoor_X = maze.Random_number(left + 1,right - 1);//开门的位置(水平)(Y)
+maze.Mark_Trace(Open_thedoor_X, tangent_point_Y, maze.Maze_empty_Enum);//开门
+//分裂块
+    Blocks.push_back({
+            left,
+            top,
+            right,
+            tangent_point_Y - 1
+        });
+    Blocks.push_back({
+            left,
+            tangent_point_Y + 1,
+            right,
+            bottom
+        });
+    }
+}
+
+maze.Log_stream << "Processing[" << left << "," << top << "," << right << "," << bottom << "]";
+maze.Map_loading(maze.Log_stream.str());
+//删除块
+Blocks.erase(Blocks.begin()+blosize);
+}
+while(true){//随机起点
+int Starting_point_X = maze.Random_number(0,Xmax);
+int Starting_point_Y = maze.Random_number(0,Ymax);
+if(maze.Location_Marker(Starting_point_X, Starting_point_Y) == maze.Maze_empty_Enum){
+maze.Set_Starting_point(Starting_point_Y*maze.X_Map_Max()+Starting_point_X);
+break;
+    }
+}
+while(true){//随机终点
+int Destination_point_X = maze.Random_number(0,Xmax);
+int Destination_point_Y = maze.Random_number(0,Ymax);
+if(maze.Location_Marker(Destination_point_X, Destination_point_Y) == maze.Maze_empty_Enum){
+maze.Set_destination(Destination_point_Y*maze.X_Map_Max()+Destination_point_X);
+break;
+        }
+    }
 }
