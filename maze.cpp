@@ -48,10 +48,11 @@ Algorithm_Library_Search.push_back(
 //初始化函数实现
 
 void Maze_AI::Startrunning_Time_Timer(){//时间初始化
+/*
 auto Start_Time_void = std::chrono::duration_cast<std::chrono::seconds>(
 std::chrono::system_clock::now().time_since_epoch()
-);
-Start_Time = Start_Time_void.count();
+);*/
+Start_Time = Get_the_time();
 }
 
 void Maze_AI::End_Point(){//终起xy位置初始化
@@ -214,9 +215,11 @@ while(true){//暂停功能循环
 
 void Maze_AI::Map_loading(std::string mapdata){//迷宫渲染
 //获取当前时间
+/*
 auto Start_Time_Current = std::chrono::duration_cast<std::chrono::seconds>(
-std::chrono::system_clock::now().time_since_epoch());
-int Time_Current = Start_Time_Current.count();
+std::chrono::system_clock::now().time_since_epoch());*/
+int Time_Current = Get_the_time();
+
 Time_Duration = Time_Current - Start_Time;
 
 sf::RectangleShape square;//方块(地图数据)
@@ -337,7 +340,8 @@ Log_output("====== Initialized the map data ======",Log_Information);
     map_Render_Display();//最后一次刷新地图
 
     Settlement();//结算数据
-    window.close();//关闭窗口
+    //window.close();//关闭窗口
+    Close_window();
 }
 
 //工具函数实现
@@ -476,9 +480,40 @@ static std::mt19937 rng(rd());//创建随机数引擎
 std::uniform_int_distribution<int> dist(Min,Max);
 return dist(rng);
 }
-//End_Point
+
+int Maze_AI::Get_the_time(){//获取当前时间
+auto Start_Time_void = std::chrono::duration_cast<std::chrono::seconds>(
+std::chrono::system_clock::now().time_since_epoch()
+);
+
+return Start_Time_void.count();//返回
+}
+
+
+
 
 //收尾函数实现
+
+void Maze_AI::Close_window(){//关闭窗口(延迟)
+//获取当前时间
+int End_time = Get_the_time()+End_waiting;
+
+//输出日志
+Log_stream << "Waiting for the end of the program[" << End_waiting << "s]";
+Log_output(Log_stream.str(),Log_Information);
+
+while(Get_the_time()<End_time){//等待关闭窗口
+Processing_window();//处理窗口状态
+Interactive_State_window();//维护交互状态
+sf::sleep(sf::milliseconds(10));//刷新间隔
+}
+window.close();
+}
+
+
+
+
+
 void Maze_AI::map_Render_Display(){//刷新起点终点
 Display_Destination_Starting_point();//刷新起/终点
 Map_loading("Completed!");//最后刷新
