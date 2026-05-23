@@ -102,11 +102,6 @@ maze.Set_destination(Finish);//设置终点
 void Recursive_Division(Maze_AI& maze){//生成迷宫(递归分割)
 int Xmax = maze.X_Map_Max()-1;
 int Ymax = maze.Y_Map_Max()-1;
-for(int i = 0;i<Ymax+1;i++){//清理一整个地图
-    for(int j = 0;j<Xmax+1;j++){
-    maze.Mark_Trace(j,i,maze.Maze_empty_Enum);
-    }
-}
 
 struct Rect {
     int left;   // 左上角 X
@@ -119,7 +114,7 @@ struct Rect {
 std::vector<Rect> Blocks;
 Blocks.push_back({0,0,Xmax,Ymax});
 while(Blocks.size()){
-int blosize = Blocks.size()-1;
+int blosize = maze.Random_number(0,Blocks.size()-1);
 
 int left = Blocks[blosize].left;// 左上角 X
 int top = Blocks[blosize].top;// 左上角 Y
@@ -156,6 +151,9 @@ Blocks.push_back({
     bottom
 });
 
+maze.Log_stream << "Processing[" << left << "," << top << "," << right << "," << bottom << "]";
+maze.Map_loading(maze.Log_stream.str());
+
 }else{// 水平切
 
 int tangent_point_Y = maze.Random_number(top+1,bottom-1);//获取水平切割点(X)
@@ -179,10 +177,13 @@ maze.Mark_Trace(Open_thedoor_X, tangent_point_Y, maze.Maze_empty_Enum);//开门
             bottom
         });
     }
-}
 
 maze.Log_stream << "Processing[" << left << "," << top << "," << right << "," << bottom << "]";
 maze.Map_loading(maze.Log_stream.str());
+
+}
+
+
 //删除块
 Blocks.erase(Blocks.begin()+blosize);
 }
@@ -194,12 +195,129 @@ maze.Set_Starting_point(Starting_point_Y*maze.X_Map_Max()+Starting_point_X);
 break;
     }
 }
+while(true){//防止随机起点终点重合
+
 while(true){//随机终点
 int Destination_point_X = maze.Random_number(0,Xmax);
 int Destination_point_Y = maze.Random_number(0,Ymax);
 if(maze.Location_Marker(Destination_point_X, Destination_point_Y) == maze.Maze_empty_Enum){
 maze.Set_destination(Destination_point_Y*maze.X_Map_Max()+Destination_point_X);
 break;
+            }
+        }
+    if(maze.Obtain_destination() != maze.Obtain_Starting_point()){
+        break;//终点和起点不重合
+    }
+    }
+}
+
+void MST_Minimum_Spanning_Tree(Maze_AI& maze){//生成迷宫(最小生成树)
+int Xmax = maze.X_Map_Max();
+int Ymax = maze.Y_Map_Max();
+struct PoinT {
+bool Room = false;//是否为房间
+int ID;
+};
+struct WalL{
+int x;
+int y;
+};
+struct PoinT_Handle{
+int x;
+int y;
+int id;
+};
+
+PoinT Points[Ymax][Xmax];//初始化房间
+std::vector<WalL> Walls;
+bool RoomArray[Ymax][Xmax] = {false};//是否为房间
+bool interval_Y = true;
+bool interval_X = true;
+for(int i=0,id = 0;i<Ymax;i++){
+    interval_Y = !interval_Y;
+    if(interval_Y){
+    for(int j=0;j<Xmax;j++){
+        interval_X = !interval_X;
+        if(interval_X){
+            maze.Mark_Trace(j,i,maze.Maze_empty_Enum);
+            RoomArray[i][j] = true;
+            Points[i][j] = {true,id};
+            id++;
+            }
         }
     }
+}
+int XOffset[4]={-1,0,1,0};
+int YOffset[4]={0,-1,0,1};
+
+for(int i = 0;i<Ymax;i++){
+    for(int j = 0;j<Xmax;j++){
+        if(RoomArray[i][j]){//如果是房间
+            continue;//跳过
+        }
+        int Room_walls = 0;
+        for(int k = 0;k<4;k++){
+            if(maze.Boundary_check(j+XOffset[k],i+YOffset[k]) && RoomArray[i+YOffset[k]][j+XOffset[k]]){
+            Room_walls++;
+            }
+            if(Room_walls == 2){
+                Walls.push_back({j,i});
+                continue;//提前退出
+            }
+        }
+    }
+}
+
+std::random_device rd;  // 获取真随机数种子
+std::mt19937 rng(rd());   // 创建随机数引擎
+std::shuffle(Walls.begin(), Walls.end(), rng);
+bool Starting_point_flag = true;
+int Temporary_endpoint;
+while(Walls.size()){
+int Handle = Walls.size()-1;
+int Handle_X = Walls[Handle].x;
+int Handle_Y = Walls[Handle].y;
+Walls.erase(Walls.begin()+Handle);//删除
+
+
+std::vector<PoinT_Handle> Point_id;//初始化
+for(int k = 0;k<4;k++){
+    int Next_X = Handle_X + XOffset[k];
+    int Next_Y = Handle_Y + YOffset[k];
+    if(!maze.Boundary_check(Next_X,Next_Y)){continue;}
+    if(RoomArray[Next_Y][Next_X]){
+        Point_id.push_back({Next_X,Next_Y,Points[Next_Y][Next_X].ID});
+    }
+}
+if(Point_id[0].id != Point_id[1].id){
+maze.Mark_Trace(Handle_X,Handle_Y,maze.Maze_empty_Enum);
+int Cover_min = std::min(Point_id[0].id,Point_id[1].id);//获取最小id
+int Cover_max = std::max(Point_id[0].id,Point_id[1].id);//获取最大id
+for(int i = 0;i<Ymax;i++){
+    for(int j = 0;j<Xmax;j++){
+        if(Points[i][j].Room){
+            if(Points[i][j].ID == Cover_max){
+                Points[i][j].ID = Cover_min;
+                }
+            }
+        }
+    }
+
+Temporary_endpoint = Point_id[0].y*Xmax+Point_id[0].x;
+//刷新地图
+std::stringstream Current_content;
+Current_content << "Create a maze[" << Handle_X << "," << Handle_Y << "," << Walls.size() <<"]";
+maze.Map_loading(Current_content.str());
+
+}
+
+if(Starting_point_flag){//第一次设置起点
+    maze.Set_Starting_point(Handle_Y*Xmax+Handle_X);
+    Starting_point_flag = false;
+}
+
+}
+//设置终点
+maze.Set_destination(Temporary_endpoint);
+
 }

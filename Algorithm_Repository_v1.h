@@ -6,10 +6,13 @@
 #include <string>
 #include <functional>
 #include <unordered_map>
+
 class Maze_AI;
 
 void Maze_Factory(Maze_AI& maze);
 void generateMazeByPrim(Maze_AI& maze);
+void Recursive_Division(Maze_AI& maze);
+void MST_Minimum_Spanning_Tree(Maze_AI& maze);
 
 void Maze_pathfinding(Maze_AI& maze);
 void Bidirectional_BFS(Maze_AI& maze);

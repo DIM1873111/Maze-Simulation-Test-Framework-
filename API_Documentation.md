@@ -35,6 +35,10 @@
 - Get_indexX(int Index);//计算引索对应的X坐标
 - Get_indexY(int Index);//计算引索对应的Y坐标
 ## 其他
+
+Random_number(int min,int max)//产生随机数
+Take_the_maximum(int a,int b)//求最大值
+Take_the_minimum(int a,int b)//求最小值
 - add_Create(std::string Name,std::string Introduction,std::function<void()> Run,int Type);//添加创造库
 - add_Search(std::string Name,std::string Introduction,std::function<void()> Run,int Type);//添加搜索库
 - Map_loading(std::string mapdata);//刷新地图

@@ -21,10 +21,13 @@ int Destination_Y;//终点Y
 int Starting_point_X;//起点X
 int Starting_point_Y;//起点Y
 
+int map_Smallest = 5;//最小地图尺寸
+int Map_Maximum = 300;//最大地图尺寸
+
 float Proportion = 20;//缩放比例
 
 int Rendering_speed = 50;//渲染速度
-int Minimum_speed = 10;//最快渲染速度
+int Minimum_speed = 0;//最快渲染速度
 int Maximum_speed = 300;//最慢渲染速度
 int Speed_Adjustment = 10;//渲染速度调节(大小)
 sf::RenderWindow window;//创建窗口
@@ -35,14 +38,14 @@ bool Accelerate_Status = false;//加速状态
 bool Decelerate_Status = false;//减速状态
 
 
-int mapMax;
+int mapMax;//地图总大小
 int Start_Time;//运行时间计时器
 
 int Time_Duration;//运行时间
 
 int Select_Create;//用户选择的生成算法
 int Select_Search;//用户选择的搜索算法
-std::string Project_Version = "V3.2.15(Graphical)";//项目版本
+std::string Project_Version = "V3.3.16(Graphical)";//项目版本
 
 
 std::vector<std::vector<int>> maze_map;//地图数据
@@ -53,6 +56,7 @@ std::string Name;//算法名称
 std::string Introduction;//算法简介
 std::function<void()> Run;//函数指针
 int Type;//算法类型
+int Initialization;//初始化标记
 };
 struct Algorithm_structure_Search{
 std::string Name;//算法名称
@@ -81,7 +85,7 @@ Exit_early = true,//正常提前退出
 
 enum Log_Type{
 Log_Error = 0,//错误日志
-Log_Warning = 1,//警告日志(配项调整等等)
+Log_Warning = 1,//警告日志(配项调整以及警告等等)
 Log_Information = 2,//信息日志
 };
 
@@ -126,6 +130,7 @@ Maze_aipath_Enum=2,//寻找痕迹
 Maze_Searching_Traces1=3,//寻找痕迹1
 Maze_Searching_Traces2=4,//寻找痕迹2
 Maze_Shortest_route=5,//最短路线标记
+
 };
 //工具函数
 bool Boundary_check(int x,int y);//检查边界是否合法
@@ -145,10 +150,12 @@ void Set_Starting_point(int Index);//设置地图起点
 
 int Obtain_destination();//获取地图终点位置(引索)
 int Obtain_Starting_point();//获取地图起点位置(引索)
+int Random_number(int Min,int Max);//随机数生成
+
 
 int Get_indexX(int Index);//计算引索对应的X坐标
 int Get_indexY(int Index);//计算引索对应的Y坐标
-void add_Create(std::string Name,std::string Introduction,std::function<void()> Run,int Type);//添加创造库
+void add_Create(std::string Name,std::string Introduction,std::function<void()> Run,int Type,Mazemapdata Initialization);//添加创造库
 void add_Search(std::string Name,std::string Introduction,std::function<void()> Run,int Type);//添加搜索库
 void Map_loading(std::string mapdata);//刷新地图
 

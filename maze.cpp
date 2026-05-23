@@ -23,18 +23,18 @@ Maze_AI::~Maze_AI(){
 }
 //提供添加算法仓库函数
 
-void Maze_AI::add_Create(std::string Name,std::string Introduction,std::function<void()> Run,int Type){
+void Maze_AI::add_Create(std::string Name,std::string Introduction,std::function<void()> Run,int Type,Mazemapdata Initialization){//添加生成算法仓库
 Algorithm_Library_Create.push_back(
     {
         std::move(Name),//名字
         std::move(Introduction),//介绍
         std::move(Run),//函数地址
-        Type//类型
-    }//move提升性能
+        Type,//类型
+        Initialization//初始化标记
+    }
 );
 }
-
-void Maze_AI::add_Search(std::string Name,std::string Introduction,std::function<void()> Run,int Type){
+void Maze_AI::add_Search(std::string Name,std::string Introduction,std::function<void()> Run,int Type){//添加搜索算法仓库
 Algorithm_Library_Search.push_back(
     {
         std::move(Name),//名字
@@ -60,6 +60,18 @@ Starting_point_X = Starting_point-Starting_point_Y*Xmax;
 
 Destination_Y = Destination/Xmax;
 Destination_X = Destination-Destination_Y*Xmax;
+
+Mark_Trace(
+    Get_indexX(Obtain_destination()),
+    Get_indexY(Obtain_destination()),
+    Maze_Destination
+);
+
+Mark_Trace(
+    Get_indexX(Obtain_Starting_point()),
+    Get_indexY(Obtain_Starting_point()),
+    Maze_Starting_point
+);
 }
 
 //数据初始化以及算法选择函数实现
@@ -119,9 +131,9 @@ void Maze_AI::maae_data_initialization(){//显示菜单(交互模式启动)
    Algorithm_selection(Generation,Pathfinding);
 }
 
-//主要渲染函数
+//主要渲染函数 
 
-void Maze_AI::Processing_window(){//处理窗口事件
+void Maze_AI::Processing_window(){//处理窗口事件以及更新数据
 while (const std::optional<sf::Event> event = window.pollEvent()){
     if(event->is<sf::Event::Closed>()){//如果点击了窗口关闭
         window.close();
@@ -201,7 +213,7 @@ while(true){//暂停功能循环
 
 
 void Maze_AI::Map_loading(std::string mapdata){//迷宫渲染
-
+//获取当前时间
 auto Start_Time_Current = std::chrono::duration_cast<std::chrono::seconds>(
 std::chrono::system_clock::now().time_since_epoch());
 int Time_Current = Start_Time_Current.count();
@@ -265,9 +277,21 @@ switch(maze_map[y][x]){
 
 
 void Maze_AI::Algorithm_selection(int Create,int Search){//算法启动以及数据检查
+//检查算法库是否存在
+if(Create>=Algorithm_Library_Create.size() || Create<0){
+    exits("Cannot find the create algorithm library",Error_exit);
+}
+if(Search>=Algorithm_Library_Search.size() || Search<0){
+    exits("Cannot find the search algorithm library",Error_exit);
+}
+if(Algorithm_Library_Create[Create].Type!=Algorithm_Library_Search[Search].Type){
+    exits("The type of the two algorithms does not match",Error_exit);
+}
+
+
 //检查数据合理性    
-if(Ymax<4 || Xmax<4 || Ymax>300 || Xmax>300){
-exits("XY map data error [XY<4][XY>200]",Error_exit);
+if(Ymax<map_Smallest || Xmax<map_Smallest || Ymax>Map_Maximum || Xmax>Map_Maximum){
+exits("XY map data error! [Name_-x_-y]",Error_exit);
 }else if(Ymax >= 80 || Xmax >= 80){//调整缩放比例
     int Ymax_Proportion = Ymax , Xmax_Proportion = Xmax;
     while(Ymax_Proportion >= 80 || Xmax_Proportion >= 80){
@@ -279,23 +303,19 @@ exits("XY map data error [XY<4][XY>200]",Error_exit);
     Log_stream << "Adjusted proportion[" << Proportion << "]";
     Log_output(Log_stream.str(),Log_Warning);
 }
-if(Create>=Algorithm_Library_Create.size() || Create<0){
-    exits("Cannot find the create algorithm library",Error_exit);
-}
-if(Search>=Algorithm_Library_Search.size() || Search<0){
-    exits("Cannot find the search algorithm library",Error_exit);
-}
-if(Algorithm_Library_Create[Create].Type!=Algorithm_Library_Search[Search].Type){
-    exits("The type of the two algorithms does not match",Error_exit);
-}
+
 
 //记录选择的算法(结算数据时使用)
 Select_Create = Create;
 Select_Search = Search;
+
 //初始化数据
-maze_map.assign(Ymax, std::vector<int>(Xmax,Maze_walls_Enum));  //地图初始值0
+/*这一段在后期应该改成工具函数 让算法自己初始化*/
+
+maze_map.assign(Ymax, std::vector<int>(Xmax,Algorithm_Library_Create[Create].Initialization));  //地图初始值0
 Rendering_map.assign(Ymax, std::vector<CircleData>(Xmax));//渲染数据缓存
-Log_output("======Initialized the map data======",Log_Information);
+
+Log_output("====== Initialized the map data ======",Log_Information);
 
     //窗口启动
     std::stringstream Current_content,Current_content_1,Current_content_2;
@@ -444,19 +464,33 @@ Log_output(Log_stream.str(),Log_Information);
     return 0;
 }
 }
+
+int Maze_AI::Random_number(int Min,int Max){
+if (Min > Max){
+    std::swap(Min, Max);
+    Log_stream << "Swapped Min and Max[" << Min << "," << Max << "]";
+    Log_output(Log_stream.str(),Log_Warning);
+}
+static std::random_device rd;// 获取真随机数种子
+static std::mt19937 rng(rd());//创建随机数引擎
+std::uniform_int_distribution<int> dist(Min,Max);
+return dist(rng);
+}
 //End_Point
 
 //收尾函数实现
-void Maze_AI::map_Render_Display(){//刷新起点终点x'x
+void Maze_AI::map_Render_Display(){//刷新起点终点
 Display_Destination_Starting_point();//刷新起/终点
 Map_loading("Completed!");//最后刷新
 }
+
 void Maze_AI::Display_Destination_Starting_point(){//刷新起点终点
 int YStarting_point = Starting_point/Xmax;//加载起点(Y)
 int YDestination = Destination/Xmax;//加载终点(Y)
 maze_map[YStarting_point][Starting_point-(YStarting_point*Xmax)]=Maze_Starting_point;
 maze_map[YDestination][Destination-(YDestination*Xmax)]=Maze_Destination;
 }
+
 void Maze_AI::Settlement(){//结算函数
 std::cout << "\n\r\33[2K";
 std::cout <<"Method.[\033[4m"<< Algorithm_Library_Create[Select_Create].Name << "\033[0m]and[\033[4m" << Algorithm_Library_Search[Select_Search].Name << "\033[0m]" << std::endl;
@@ -464,7 +498,8 @@ std::cout << "Time["<<Time_Duration<<"/s]["<< Xmax << "*" << Ymax << "]\033[94m[
 }
 
 void Maze_AI::Log_output(std::string message,Log_Type Type){//日志输出
-    std::cout << "[" <<Time_Duration<<"s]" ;//输出时间
+    std::cout << "\033[2m[" <<Time_Duration<<"s]\033[0m" ;//输出时间
+
     switch (Type)// 输出日志类型
     {
     case Log_Error:
@@ -474,8 +509,7 @@ void Maze_AI::Log_output(std::string message,Log_Type Type){//日志输出
         case Log_Information:
         std::cout << "\033[32m[i]\033[0m" << message;break;
         default://未知类型
-        std::cout << "\033[32m[?]\033[0m" << message;break;
-        
+        std::cout << "\033[32m[?]\033[0m" << message;break; 
     }
     std::cout << std::endl;//换行
     Log_stream.str("");

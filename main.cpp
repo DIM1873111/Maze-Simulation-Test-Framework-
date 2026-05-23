@@ -7,25 +7,38 @@
 
 int main(int argc, char* argv[]){
 Maze_AI Maze_Simulation;
+
 Maze_Simulation.add_Create(
     "DFS[0.0.7]",
     "adaptation framework[v1]",
     [&Maze_Simulation]() { Maze_Factory(Maze_Simulation); },
-    100 
+    100,
+    Maze_Simulation.Maze_walls_Enum
 );
 Maze_Simulation.add_Create(
     "Prim[0.0.8]",
     "adaptation framework[v1.1]",
     [&Maze_Simulation]() { generateMazeByPrim(Maze_Simulation); },
-    100
+    100,
+    Maze_Simulation.Maze_walls_Enum
 );
-//Recursive_Division
 Maze_Simulation.add_Create(
     "Recursive_Division[0.0.7]",
     "adaptation framework[v1.1]",
     [&Maze_Simulation]() { Recursive_Division(Maze_Simulation); },
-    100
+    100,
+    Maze_Simulation.Maze_empty_Enum
 );
+//void MST_Minimum_Spanning_Tree(Maze_AI& maze)
+Maze_Simulation.add_Create(
+    "MST_Minimum_Spanning_Tree[0.0.7]",
+    "adaptation framework[v1.1]",
+    [&Maze_Simulation]() { MST_Minimum_Spanning_Tree(Maze_Simulation); },
+    100,
+    Maze_Simulation.Maze_walls_Enum
+);
+
+
 
 Maze_Simulation.add_Search(
     "BFS[0.0.9]",
