@@ -10,6 +10,17 @@
 #include <SFML/Graphics.hpp>
 #include "json.hpp"//json库
 
+
+/*[Topic 2]
+ ________  ______  ______________  __     __
+|   ___  \ \____/ /  __    __    /|  |   |  |      A simple maze simulation framework (H)
+|  |   |  |  __  |  |  |  |  |  | |  |___|  |      Maze_AI Project start time[20260427]   
+|  |   |  | |  | |  |  |  |  |  | |   ___   |      Version 3.4.04(Graphical)  
+|  |   |  | |  | |  |  |  |  |  | |  |   |  |      by DIM1873111  
+|  |___/  | |  | |  |  |  |  |  | |  |   |  |            
+|________/ /___| |__|  |__|  |__| |__|   |__|      https://github.com/DIM1873111/Maze-Simulation-Test-Framework-
+*/
+
 class Maze_AI
 {
 private://私有
@@ -49,8 +60,8 @@ int Time_Duration;//运行时间
 
 int Select_Create;//用户选择的生成算法
 int Select_Search;//用户选择的搜索算法
-std::string Project_Version = "V3.3.16(Graphical)";//项目版本
-
+std::string Project_Version = "V3.4.04(Graphical)";//项目版本
+std::string Warehouse_link = R"(https://github.com/DIM1873111/Maze-Simulation-Test-Framework-)";
 
 std::vector<std::vector<int>> maze_map;//地图数据
 

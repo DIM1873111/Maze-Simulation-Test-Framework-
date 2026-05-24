@@ -1,15 +1,3 @@
-
-/*
-           _______  ______  _______________
-          /  ___  \ \____/ /  ___   ___   /
-         /  /   |  | ___  /  /  /  /  /  /
-        /  /   /  / /  / /  /  /  /  /  /
-       /  /   /  / /  / /  /  /  /  /  /
-      /  /__ /  / /  / /  /  /  /  /  /
-     /_________/ /__/ /__/  /__/  /__/
-    Maze_AI_Project_start_time[20260427]
-*/
-
 #include "maze.h"
 #include <iostream>
 #include <vector>
@@ -24,6 +12,17 @@
 #include <SFML/Graphics.hpp>//SFML库(图形库)
 #include <fstream>
 #include "json.hpp"//json库
+
+/*[Topic 1]
+ __   _______  ______  _______________
+|  / /  ___  \ \____/ /  ___   ___   /    A simple maze simulation framework
+| / /  /   |  | ___  /  /  /  /  /  /     Maze_AI Project start time[20260427]
+|/ /  /   /  / /  / /  /  /  /  /  / |    Version 3.4.04(Graphical)
+| /  /   /  / /  / /  /  /  /  /  / /|    by DIM1873111
+ /  /___/  / /  / /  /  /  /  /  / / |
+/_________/ /__/ /__/  /__/  /__/ /__|    https://github.com/DIM1873111/Maze-Simulation-Test-Framework-
+
+*/
 
 Maze_AI::Maze_AI(){
 
@@ -653,14 +652,34 @@ exit(0);//程序退出
 //其他函数
 
 void Maze_AI::cout_title(){
-std::cout << "      "<<"_______"<< "  "<<"______"<<"   "<<"______________"<<std::endl;
-std::cout << "     "<<"/  ___  \\"<<" "<<"\\____/"<<" "<<"/  ___   ___   /"<<std::endl;
-std::cout << "    "<<"/  /   |  |"<< ""<<" ___  "<<""<<"/  /  /  /  /  /"<<std::endl;
-std::cout << "   "<<"/  /   /  /"<< ""<<" /  / "<<""<<"/  /  /  /  /  /"<<std::endl;
-std::cout << "  "<<"/  /   /  /"<< ""<<" /  / "<<""<<"/  /  /  /  /  /"<<std::endl;
-std::cout << " "<<"/  /__ /  /"<< ""<<" /  / "<<""<<"/  /  /  /  /  /"<<std::endl;
-std::cout << ""<<"/_________/"<<""<<" /__/ "<<""<<"/__/  /__/  /__/"<<std::endl;
-//std::cout << "Maze_AI_Project_start_time[20260427]"<<std::endl;
-std::cout << "Maze_AI_AI Version:"<< Project_Version <<std::endl;
+
+if(Random_number(0,1)){
+std::string Topic_1 =R"(
+ __   _______  ______  _______________
+|  / /  ___  \ \____/ /  ___   ___   /    A simple maze simulation framework
+| / /  /   |  | ___  /  /  /  /  /  /     Maze_AI Project start time[20260427]
+|/ /  /   /  / /  / /  /  /  /  /  / |    
+| /  /   /  / /  / /  /  /  /  /  / /|    by DIM1873111
+ /  /___/  / /  / /  /  /  /  /  / / |
+/_________/ /__/ /__/  /__/  /__/ /__|  
+)";
+std::cout << Topic_1 << std::endl;
+
+}else{
+std::string Topic_2 =R"(
+ ________  ______  ______________
+|   ___  \ \____/ /  __    __    /    A simple maze simulation framework
+|  |   |  |  __  |  |  |  |  |  |     Maze_AI Project start time[20260427]
+|  |   |  | |  | |  |  |  |  |  |     
+|  |   |  | |  | |  |  |  |  |  |     by DIM1873111
+|  |___/  | |  | |  |  |  |  |  |     
+|________/ /___| |__|  |__|  |__|  
+)";
+std::cout << Topic_2 << std::endl;
+
+}
+
+std::cout << "Maze_AI_AI Version:"<< Project_Version <<"      ";
+std::cout << "\033[4m" << Warehouse_link << "\033[0m" << std::endl;
 std::cout << std::endl;
 }
