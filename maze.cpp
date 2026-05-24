@@ -1,3 +1,15 @@
+
+/*
+           _______  ______  _______________
+          /  ___  \ \____/ /  ___   ___   /
+         /  /   |  | ___  /  /  /  /  /  /
+        /  /   /  / /  / /  /  /  /  /  /
+       /  /   /  / /  / /  /  /  /  /  /
+      /  /__ /  / /  / /  /  /  /  /  /
+     /_________/ /__/ /__/  /__/  /__/
+    Maze_AI_Project_start_time[20260427]
+*/
+
 #include "maze.h"
 #include <iostream>
 #include <vector>
@@ -9,20 +21,108 @@
 #include <functional>
 #include <unordered_map>
 #include <chrono>
-
-#include <SFML/Graphics.hpp>
+#include <SFML/Graphics.hpp>//SFML库(图形库)
+#include <fstream>
+#include "json.hpp"//json库
 
 Maze_AI::Maze_AI(){
+
+
+std::string Config_Document = "config.json";//获取配置文件
+nlohmann::json Config;
+std::ifstream Document(Config_Document);
+
+if(Document.is_open()){
+    Document >> Config;
+    Document.close();
+    map_Smallest = Config.value("map_Smallest",map_Smallest);//最小地图尺寸
+    Map_Maximum = Config.value("Map_Maximum",Map_Maximum);//最大地图尺寸
+    Xmax = Config.value("DefaultXmax",Xmax);//默认地图最大X尺寸
+    Ymax = Config.value("DefaultYmax",Ymax);//默认地图最大Y尺寸
+    Proportion = Config.value("Proportion",Proportion);//缩放比例
+    Rendering_speed = Config.value("Rendering_speed",Rendering_speed);//默认渲染速度
+    Minimum_speed = Config.value("Minimum_speed",Minimum_speed);//最快渲染速度
+    Maximum_speed = Config.value("Maximum_speed",Maximum_speed);//最慢渲染速度
+    Speed_Adjustment = Config.value("Speed_Adjustment",Speed_Adjustment);//渲染速度调节(大小)
+    Adjust_Zoom = Config.value("Adjust_Zoom",Adjust_Zoom);//超时自动调整缩放比例
+    End_waiting = Config.value("End_waiting",End_waiting);//结束等待时间
+//读取颜色配置(并设置默认值)
+nlohmann::json 
+Maze_Destination_colorsArray = Config.value("Maze_Destination_colors", nlohmann::json({Maze_Destination_colors.r,Maze_Destination_colors.g,Maze_Destination_colors.b})),
+Maze_Starting_point_colorsArray = Config.value("Maze_Starting_point_colors", nlohmann::json({Maze_Starting_point_colors.r,Maze_Starting_point_colors.g,Maze_Starting_point_colors.b})),
+Maze_aipath_colorsArray = Config.value("Maze_aipath_colors", nlohmann::json({Maze_aipath_colors.r,Maze_aipath_colors.g,Maze_aipath_colors.b})),
+Maze_Shortest_route_colorsArray = Config.value("Maze_Shortest_route_colors", nlohmann::json({Maze_Shortest_route_colors.r,Maze_Shortest_route_colors.g,Maze_Shortest_route_colors.b})),
+Maze_Searching_Traces1_colorsArray = Config.value("Maze_Searching_Traces1_colors", nlohmann::json({Maze_Searching_Traces1_colors.r,Maze_Searching_Traces1_colors.g,Maze_Searching_Traces1_colors.b})),
+Maze_Searching_Traces2_colorsArray = Config.value("Maze_Searching_Traces2_colors", nlohmann::json({Maze_Searching_Traces2_colors.r,Maze_Searching_Traces2_colors.g,Maze_Searching_Traces2_colors.b})),
+Gold_Coin_Special_colorsArray = Config.value("Gold_Coin_Special_colors", nlohmann::json({Gold_Coin_Special_colors.r,Gold_Coin_Special_colors.g,Gold_Coin_Special_colors.b})),
+Scan_Mark_colorsArray = Config.value("Scan_Mark_colors", nlohmann::json({Scan_Mark_colors.r,Scan_Mark_colors.g,Scan_Mark_colors.b})),
+Gold_Coin_Tag_colorsArray = Config.value("Gold_Coin_Tag_colors", nlohmann::json({Gold_Coin_Tag_colors.r,Gold_Coin_Tag_colors.g,Gold_Coin_Tag_colors.b})),
+Maze_empty_colorsArray = Config.value("Maze_empty_colors", nlohmann::json({Maze_empty_colors.r,Maze_empty_colors.g,Maze_empty_colors.b})),
+Maze_walls_colorsArray = Config.value("Maze_walls_colors", nlohmann::json({Maze_walls_colors.r,Maze_walls_colors.g,Maze_walls_colors.b})),
+Maze_unknown_colorsArray = Config.value("Maze_unknown_colors", nlohmann::json({Maze_unknown_colors.r,Maze_unknown_colors.g,Maze_unknown_colors.b}));
+//获取颜色配置
+Maze_Destination_colors = {createColorFromJson(Maze_Destination_colorsArray)},
+Maze_Starting_point_colors = (createColorFromJson(Maze_Starting_point_colorsArray)),
+Maze_aipath_colors = (createColorFromJson(Maze_aipath_colorsArray)),
+Maze_Shortest_route_colors = (createColorFromJson(Maze_Shortest_route_colorsArray)),
+Maze_Searching_Traces1_colors = (createColorFromJson(Maze_Searching_Traces1_colorsArray)),
+Maze_Searching_Traces2_colors = (createColorFromJson(Maze_Searching_Traces2_colorsArray)),
+Scan_Mark_colors = (createColorFromJson(Scan_Mark_colorsArray)),
+Gold_Coin_Tag_colors = (createColorFromJson(Gold_Coin_Tag_colorsArray)),
+Maze_empty_colors = (createColorFromJson(Maze_empty_colorsArray)),
+Maze_walls_colors = (createColorFromJson(Maze_walls_colorsArray)),
+Maze_unknown_colors = (createColorFromJson(Maze_unknown_colorsArray));
+
+}else{//配置文件不存在
+Config = {
+{"map_Smallest",map_Smallest},//最小地图尺寸
+{"Map_Maximum",Map_Maximum},//最大地图尺寸
+{"DefaultXmax",Xmax},//默认地图最大X尺寸
+{"DefaultYmax",Ymax},//默认地图最大Y尺寸
+{"Proportion",Proportion},//缩放比例
+{"Rendering_speed",Rendering_speed},//默认渲染速度
+{"Minimum_speed",Minimum_speed},//最快渲染速度
+{"Maximum_speed",Maximum_speed},//最慢渲染速度
+{"Speed_Adjustment",Speed_Adjustment},//渲染速度调节(大小)
+{"Adjust_Zoom",Adjust_Zoom},//超时自动调整缩放比例
+{"End_waiting",End_waiting},//结束等待时间
+
+{"Maze_Destination_colors",{Maze_Destination_colors.r,Maze_Destination_colors.g,Maze_Destination_colors.b}},
+{"Maze_Starting_point_colors",{Maze_Starting_point_colors.r,Maze_Starting_point_colors.g,Maze_Starting_point_colors.b}},
+{"Maze_aipath_colors",{Maze_aipath_colors.r,Maze_aipath_colors.g,Maze_aipath_colors.b}},
+{"Maze_Shortest_route_colors",{Maze_Shortest_route_colors.r,Maze_Shortest_route_colors.g,Maze_Shortest_route_colors.b}},
+{"Maze_Searching_Traces1_colors",{Maze_Searching_Traces1_colors.r,Maze_Searching_Traces1_colors.g,Maze_Searching_Traces1_colors.b}},
+{"Maze_Searching_Traces2_colors",{Maze_Searching_Traces2_colors.r,Maze_Searching_Traces2_colors.g,Maze_Searching_Traces2_colors.b}},
+{"Gold_Coin_Special_colors",{Gold_Coin_Special_colors.r,Gold_Coin_Special_colors.g,Gold_Coin_Special_colors.b}},
+{"Scan_Mark_colors",{Scan_Mark_colors.r,Scan_Mark_colors.g,Scan_Mark_colors.b}},
+{"Gold_Coin_Tag_colors",{Gold_Coin_Tag_colors.r,Gold_Coin_Tag_colors.g,Gold_Coin_Tag_colors.b}},
+{"Maze_empty_colors",{Maze_empty_colors.r,Maze_empty_colors.g,Maze_empty_colors.b}},
+{"Maze_walls_colors",{Maze_walls_colors.r,Maze_walls_colors.g,Maze_walls_colors.b}},
+{"Maze_unknown_colors",{Maze_unknown_colors.r,Maze_unknown_colors.g,Maze_unknown_colors.b}}
+
+};
+std::ofstream OutFile(Config_Document);//创建配置文件
+if (OutFile.is_open()){
+    OutFile << std::setw(4) << Config << std::endl;
+    OutFile.close();
+}else{
+    //调用日志
+    Log_output("Failed to create the configuration file",Log_Error);
+    //exits("Failed to create the configuration file",Exit_early);
+    }
+}
 mapMax = Xmax*Ymax;
-Startrunning_Time_Timer();//时间初始化
-/*如果需要初始化数据 放在这里*/
 }
 
 Maze_AI::~Maze_AI(){
     /*如果需要清理资源，在这里写*/
 }
-//提供添加算法仓库函数
+Maze_AI::Map_data_colors Maze_AI::createColorFromJson(const nlohmann::json& colorArray){
+    Map_data_colors color = {colorArray[0], colorArray[1], colorArray[2]};
+    return color;
+}
 
+//提供添加算法仓库函数
 void Maze_AI::add_Create(std::string Name,std::string Introduction,std::function<void()> Run,int Type,Mazemapdata Initialization){//添加生成算法仓库
 Algorithm_Library_Create.push_back(
     {
@@ -46,14 +146,6 @@ Algorithm_Library_Search.push_back(
 }
 
 //初始化函数实现
-
-void Maze_AI::Startrunning_Time_Timer(){//时间初始化
-/*
-auto Start_Time_void = std::chrono::duration_cast<std::chrono::seconds>(
-std::chrono::system_clock::now().time_since_epoch()
-);*/
-Start_Time = Get_the_time();
-}
 
 void Maze_AI::End_Point(){//终起xy位置初始化
 Starting_point_Y = Starting_point/Xmax;
@@ -90,6 +182,7 @@ cre = std::stoi(mapdata[4]);
 
 Algorithm_selection(sea,cre);
 }else if(Parameter >= 2){
+cout_title();
 std::cout << "The parameters you provided are insufficient. Startup method:" << std::endl;
 std::cout << "Parameter Start: [Program Name(Location)] [mapx] [mapy] [Create Number] [Search Number]"  << std::endl;
 std::cout << "Or enter after opening the program: [mapx] [mapy] [Create Number] [Search Number]" << std::endl;
@@ -103,7 +196,8 @@ maae_data_initialization();//正常模式启动
 //显示菜单以及启动数据检查
 void Maze_AI::maae_data_initialization(){//显示菜单(交互模式启动)
     int XnewValue=0,YnewValue=0,Pathfinding=0,Generation=0;
-    std::cout << "[Dim|C++]Maze_Simulation_\033[4m" << Project_Version << "\033[0m" << std::endl;
+    cout_title();
+    //std::cout << "[Dim|C++]Maze_Simulation_\033[4m" << Project_Version << "\033[0m" << std::endl;
     if(Algorithm_Library_Create.size()==0){
     std::cout << "\033[2mGeneration algorithm not found\033[0m" << std::endl;
     }else{
@@ -214,10 +308,6 @@ while(true){//暂停功能循环
 
 
 void Maze_AI::Map_loading(std::string mapdata){//迷宫渲染
-//获取当前时间
-/*
-auto Start_Time_Current = std::chrono::duration_cast<std::chrono::seconds>(
-std::chrono::system_clock::now().time_since_epoch());*/
 int Time_Current = Get_the_time();
 
 Time_Duration = Time_Current - Start_Time;
@@ -251,29 +341,29 @@ for(int i = 0;i<Ymax;i++){//渲染
 void Maze_AI::Render_cout(int y,int x){
 switch(maze_map[y][x]){
     case Maze_empty_Enum://空
-    Rendering_map[y][x] = {Proportion,sf::Color(0, 0, 0)};break;
+    Rendering_map[y][x] = {Proportion,sf::Color(Maze_empty_colors.r, Maze_empty_colors.g, Maze_empty_colors.b)};break;
     case Maze_walls_Enum:
-    Rendering_map[y][x] = {Proportion,sf::Color::White};break;
-    case Maze_Destination:
-    Rendering_map[y][x] = {Proportion,sf::Color::Red};break;
-    case Maze_Starting_point:
-    Rendering_map[y][x] = {Proportion,sf::Color::Blue};break;
-    case Maze_aipath_Enum:
-    Rendering_map[y][x] = {Proportion,sf::Color::Green};break;
-    case Maze_Shortest_route:
-    Rendering_map[y][x] = {Proportion,sf::Color::Magenta};break;
+    Rendering_map[y][x] = {Proportion,sf::Color(Maze_walls_colors.r, Maze_walls_colors.g, Maze_walls_colors.b)};break;
+    case Maze_Destination://red
+    Rendering_map[y][x] = {Proportion,sf::Color(Maze_Destination_colors.r, Maze_Destination_colors.g, Maze_Destination_colors.b)};break;
+    case Maze_Starting_point://Blue
+    Rendering_map[y][x] = {Proportion,sf::Color(Maze_Starting_point_colors.r, Maze_Starting_point_colors.g, Maze_Starting_point_colors.b)};break;
+    case Maze_aipath_Enum://Green
+    Rendering_map[y][x] = {Proportion,sf::Color(Maze_aipath_colors.r, Maze_aipath_colors.g, Maze_aipath_colors.b)};break;
+    case Maze_Shortest_route://Magenta
+    Rendering_map[y][x] = {Proportion,sf::Color(Maze_Shortest_route_colors.r, Maze_Shortest_route_colors.g, Maze_Shortest_route_colors.b)};break;
     case Maze_Searching_Traces1:
-    Rendering_map[y][x] = {Proportion,sf::Color(192,192,192)};break;
+    Rendering_map[y][x] = {Proportion,sf::Color(Maze_Searching_Traces1_colors.r, Maze_Searching_Traces1_colors.g, Maze_Searching_Traces1_colors.b)};break;
     case Maze_Searching_Traces2:
-    Rendering_map[y][x] = {Proportion,sf::Color(64,64,64)};break;
+    Rendering_map[y][x] = {Proportion,sf::Color(Maze_Searching_Traces2_colors.r, Maze_Searching_Traces2_colors.g, Maze_Searching_Traces2_colors.b)};break;
     case Gold_Coin_Special:
-    Rendering_map[y][x] = {10,sf::Color(255,215,0)};break;
+    Rendering_map[y][x] = {Proportion,sf::Color(Gold_Coin_Special_colors.r, Gold_Coin_Special_colors.g, Gold_Coin_Special_colors.b)};break;
     case Scan_Mark:
-    Rendering_map[y][x] = {Proportion,sf::Color(80,80,80)};break;
+    Rendering_map[y][x] = {Proportion,sf::Color(Scan_Mark_colors.r, Scan_Mark_colors.g, Scan_Mark_colors.b)};break;
     case Gold_Coin_Tag:
-    Rendering_map[y][x] = {10,sf::Color(255,215,0)};break;
+    Rendering_map[y][x] = {Proportion,sf::Color(Gold_Coin_Tag_colors.r, Gold_Coin_Tag_colors.g, Gold_Coin_Tag_colors.b)};break;
     default://未知数据
-    Rendering_map[y][x] = {5,sf::Color(255, 255, 255)};break;
+    Rendering_map[y][x] = {Proportion,sf::Color(Maze_unknown_colors.r, Maze_unknown_colors.g, Maze_unknown_colors.b)};break;
     } 
 }
 
@@ -295,14 +385,13 @@ if(Algorithm_Library_Create[Create].Type!=Algorithm_Library_Search[Search].Type)
 //检查数据合理性    
 if(Ymax<map_Smallest || Xmax<map_Smallest || Ymax>Map_Maximum || Xmax>Map_Maximum){
 exits("XY map data error! [Name_-x_-y]",Error_exit);
-}else if(Ymax >= 80 || Xmax >= 80){//调整缩放比例
+}else if(Ymax >= Adjust_Zoom || Xmax >= Adjust_Zoom){//调整缩放比例
     int Ymax_Proportion = Ymax , Xmax_Proportion = Xmax;
-    while(Ymax_Proportion >= 80 || Xmax_Proportion >= 80){
+    while(Ymax_Proportion >= Adjust_Zoom || Xmax_Proportion >= Adjust_Zoom){
     Proportion = Proportion/2;//调整缩放比例
     Ymax_Proportion = Ymax_Proportion/2;
     Xmax_Proportion = Xmax_Proportion/2;
     }
-
     Log_stream << "Adjusted proportion[" << Proportion << "]";
     Log_output(Log_stream.str(),Log_Warning);
 }
@@ -311,9 +400,8 @@ exits("XY map data error! [Name_-x_-y]",Error_exit);
 //记录选择的算法(结算数据时使用)
 Select_Create = Create;
 Select_Search = Search;
-
+Start_Time = Get_the_time();//时间初始化
 //初始化数据
-/*这一段在后期应该改成工具函数 让算法自己初始化*/
 
 maze_map.assign(Ymax, std::vector<int>(Xmax,Algorithm_Library_Create[Create].Initialization));  //地图初始值0
 Rendering_map.assign(Ymax, std::vector<CircleData>(Xmax));//渲染数据缓存
@@ -489,9 +577,6 @@ std::chrono::system_clock::now().time_since_epoch()
 return Start_Time_void.count();//返回
 }
 
-
-
-
 //收尾函数实现
 
 void Maze_AI::Close_window(){//关闭窗口(延迟)
@@ -509,9 +594,6 @@ sf::sleep(sf::milliseconds(10));//刷新间隔
 }
 window.close();
 }
-
-
-
 
 
 void Maze_AI::map_Render_Display(){//刷新起点终点
@@ -567,4 +649,18 @@ std::cout << "\033[31m[?]\033[0mUnknown error.-->\033[4m"<< Error_message << "\0
     break;
 }
 exit(0);//程序退出
+}
+//其他函数
+
+void Maze_AI::cout_title(){
+std::cout << "      "<<"_______"<< "  "<<"______"<<"   "<<"______________"<<std::endl;
+std::cout << "     "<<"/  ___  \\"<<" "<<"\\____/"<<" "<<"/  ___   ___   /"<<std::endl;
+std::cout << "    "<<"/  /   |  |"<< ""<<" ___  "<<""<<"/  /  /  /  /  /"<<std::endl;
+std::cout << "   "<<"/  /   /  /"<< ""<<" /  / "<<""<<"/  /  /  /  /  /"<<std::endl;
+std::cout << "  "<<"/  /   /  /"<< ""<<" /  / "<<""<<"/  /  /  /  /  /"<<std::endl;
+std::cout << " "<<"/  /__ /  /"<< ""<<" /  / "<<""<<"/  /  /  /  /  /"<<std::endl;
+std::cout << ""<<"/_________/"<<""<<" /__/ "<<""<<"/__/  /__/  /__/"<<std::endl;
+//std::cout << "Maze_AI_Project_start_time[20260427]"<<std::endl;
+std::cout << "Maze_AI_AI Version:"<< Project_Version <<std::endl;
+std::cout << std::endl;
 }

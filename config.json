@@ -1,0 +1,75 @@
+{
+    "Adjust_Zoom": 80,
+    "DefaultXmax": 0,
+    "DefaultYmax": 0,
+    "End_waiting": 3,
+    "Map_Maximum": 300,
+    "Maximum_speed": 300,
+    "Minimum_speed": 0,
+    "Proportion": 20.0,
+    "Rendering_speed": 50,
+    "Speed_Adjustment": 10,
+    "map_Smallest": 5,
+
+    "Gold_Coin_Special_colors": [
+        255,
+        215,
+        0
+    ],
+    "Gold_Coin_Tag_colors": [
+        255,
+        215,
+        0
+    ],
+
+    "Maze_Destination_colors": [
+        255,
+        0,
+        0
+    ],
+    "Maze_Searching_Traces1_colors": [
+        192,
+        192,
+        192
+    ],
+    "Maze_Searching_Traces2_colors": [
+        64,
+        64,
+        64
+    ],
+    "Maze_Shortest_route_colors": [
+        255,
+        0,
+        255
+    ],
+    "Maze_Starting_point_colors": [
+        0,
+        0,
+        255
+    ],
+    "Maze_aipath_colors": [
+        0,
+        255,
+        0
+    ],
+    "Maze_empty_colors": [
+        0,
+        0,
+        0
+    ],
+    "Maze_unknown_colors": [
+        255,
+        255,
+        255
+    ],
+    "Maze_walls_colors": [
+        255,
+        255,
+        255
+    ],
+    "Scan_Mark_colors": [
+        80,
+        80,
+        80
+    ]
+}

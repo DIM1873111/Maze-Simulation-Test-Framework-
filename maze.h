@@ -8,6 +8,7 @@
 #include <unordered_map>
 
 #include <SFML/Graphics.hpp>
+#include "json.hpp"//json库
 
 class Maze_AI
 {
@@ -30,12 +31,15 @@ int Rendering_speed = 50;//渲染速度
 int Minimum_speed = 0;//最快渲染速度
 int Maximum_speed = 300;//最慢渲染速度
 int Speed_Adjustment = 10;//渲染速度调节(大小)
+int Adjust_Zoom = 80;//超时自动调整缩放比例
+int End_waiting = 3;//结束等待时间
 sf::RenderWindow window;//创建窗口
 
 bool Pause_Status = false;//暂停状态
 bool ESC_Exit_Status = false;//ESC退出状态
 bool Accelerate_Status = false;//加速状态
 bool Decelerate_Status = false;//减速状态
+
 
 
 int mapMax;//地图总大小
@@ -50,7 +54,11 @@ std::string Project_Version = "V3.3.16(Graphical)";//项目版本
 
 std::vector<std::vector<int>> maze_map;//地图数据
 
-
+struct Map_data_colors {
+int r;
+int g;
+int b;
+};
 struct Algorithm_structure_Create{
 std::string Name;//算法名称
 std::string Introduction;//算法简介
@@ -76,8 +84,6 @@ std::vector<std::vector<CircleData>> Rendering_map;//渲染数据缓存
 std::vector<Algorithm_structure_Create> Algorithm_Library_Create;//算法库
 std::vector<Algorithm_structure_Search> Algorithm_Library_Search;//算法库
 
-
-
 enum Exit_Status{//程序退出类型
 Error_exit = false,//错误退出
 Exit_early = true,//正常提前退出
@@ -89,7 +95,22 @@ Log_Warning = 1,//警告日志(配项调整以及警告等等)
 Log_Information = 2,//信息日志
 };
 
+Map_data_colors 
+Maze_Destination_colors = {255,0,0},
+Maze_Starting_point_colors = {0,0,255},
+Maze_aipath_colors = {0,255,0},
+Maze_Shortest_route_colors = {255,0,255},
+Maze_Searching_Traces1_colors = {192,192,192},
+Maze_Searching_Traces2_colors = {64,64,64},
+Gold_Coin_Special_colors = {255,215,0},
+Scan_Mark_colors = {80,80,80},
+Gold_Coin_Tag_colors = {255,215,0},
+Maze_empty_colors = {0,0,0},
+Maze_walls_colors = {255,255,255},
+Maze_unknown_colors = {255,255,255};
 
+
+Map_data_colors createColorFromJson(const nlohmann::json& colorArray);//从json数据中获取颜色
 //主函数
 void maae_data_initialization();
 
@@ -101,11 +122,11 @@ void Interactive_State_window();////处理交互
 
 void Render_cout(int y,int x);//初始化渲染内容
 
+void cout_title();//输出标题
 
 //初始化函数
 void End_Point();//终起xy初始化(运行完生成算法后)
-void Startrunning_Time_Timer();//时间初始化
-//std::string GetFormattedTime();//时间格式化[hh:mm:ss]
+void Close_window();//关闭窗口
 void exits(std::string Error_message,int Exit_Type = Error_exit);//退出函数
 
 void map_Render_Display();//最后一次刷新起点终点
@@ -151,7 +172,7 @@ void Set_Starting_point(int Index);//设置地图起点
 int Obtain_destination();//获取地图终点位置(引索)
 int Obtain_Starting_point();//获取地图起点位置(引索)
 int Random_number(int Min,int Max);//随机数生成
-
+int Get_the_time();//获取当前时间
 
 int Get_indexX(int Index);//计算引索对应的X坐标
 int Get_indexY(int Index);//计算引索对应的Y坐标
