@@ -92,9 +92,15 @@ Maze_Simulation.add_Search(
     "JPS",
     "Search_Algorithm_JPS[Av2]",
     [&Maze_Simulation]() { Search_Algorithm_JPS(Maze_Simulation); },
-   100
+    100
 );
-
+//Iterative_Deepening
+Maze_Simulation.add_Search(
+    "Iterative_Deepening",
+    "Iterative_Deepening[Av1]",
+    [&Maze_Simulation]() { Iterative_Deepening(Maze_Simulation); },
+    100
+);
 
 Maze_Simulation.Parameter_Start_data(argc,argv);//模式选择(主函数)
 

@@ -23,41 +23,39 @@
 - build.bat 编译脚本
 - config.json 项目配置文件
 4. 目前项目自带的算法实现以及规划
-- 1.DFS 深度优先搜索
+- DFS 深度优先搜索
     [已实现]
-- 2.BFS 广度优先搜索 
+- BFS 广度优先搜索 
     [已实现]
-- 3.A* 启发式搜索 
-    [已实现/多个版本]
-- 4.Dijkstra 迪克斯特拉算法 
-    [已经实现/多个版本]
-- 5.Greedy 贪婪算法 
+- A* 启发式搜索 
+    [已实现/多版本]
+- Dijkstra 迪克斯特拉算法 
+    [已实现/多版本]
+- Greedy 贪婪算法 
     [部分复合算法实现]
-- 6.Hill Climbing 爬山算法 
+- Random 随机算法 
     [待实现]
-- 7.Random 随机算法 
+- Recursive Backtracking 递归回溯算法 
     [待实现]
-- 8.Recursive Backtracking 递归回溯算法 
-    [待实现]
-- 9.Iterative Deepening 迭代深度搜索 
-    [待实现]
-- 10.Simulated Annealing 模拟退火算法 
-    [待实现]
-- 11.Genetic Algorithm 遗传算法 
-    [待实现]
-- 12.MST Minimum Spanning Tree 最小生成树算法 
+- Iterative Deepening 迭代深度搜索 
     [已实现]
-- 13.Kruskal 克鲁斯卡尔算法 
+- Simulated Annealing 模拟退火算法 
     [待实现]
-- 14.Prim 普里姆算法 
+- Genetic Algorithm 遗传算法 
+    [待实现]
+- MST Minimum Spanning Tree 最小生成树算法 
     [已实现]
-- 15.Bellman-Ford 贝尔曼-福特算法 
+- Kruskal 克鲁斯卡尔算法 
     [待实现]
-- 16.Floyd Warshall 弗洛伊德算法 
+- Prim 普里姆算法 
+    [已实现]
+- Bellman-Ford 贝尔曼-福特算法 
     [待实现]
-- 17.Johnson 约翰内斯算法 
+- Floyd Warshall 弗洛伊德算法 
     [待实现]
-- 18.Recursive Division 递归分割算法 
+- Johnson 约翰内斯算法 
+    [待实现]
+- Recursive Division 递归分割算法 
     [已实现]
 - ...【待补充】
 # 项目使用
