@@ -101,6 +101,20 @@ Maze_Simulation.add_Search(
     [&Maze_Simulation]() { Iterative_Deepening(Maze_Simulation); },
     100
 );
+//Iterative_Deepening_A_Star
+Maze_Simulation.add_Search(
+    "Iterative_Deepening_A_Star",
+    "Iterative_Deepening_A_Star[Av1]",
+    [&Maze_Simulation]() { Iterative_Deepening_A_Star(Maze_Simulation); },
+    100
+);
+//Search_Algorithm_IDA_Star
+Maze_Simulation.add_Search(
+    "Search_Algorithm_IDA_Star",
+    "Search_Algorithm_IDA_Star[Av1]",
+    [&Maze_Simulation]() { Search_Algorithm_IDA_Star(Maze_Simulation); },
+    100
+);
 
 Maze_Simulation.Parameter_Start_data(argc,argv);//模式选择(主函数)
 

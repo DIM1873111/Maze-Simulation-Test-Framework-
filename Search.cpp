@@ -940,5 +940,179 @@ std::stringstream Current_content;
 Current_content << "Shortest path...[" << destinationX << "," << destinationY << "]";
 maze.Map_loading(Current_content.str());
     }
+}
 
+void Iterative_Deepening_A_Star(Maze_AI& maze){
+int Xmax = maze.X_Map_Max(),Ymax = maze.Y_Map_Max();
+int seaY = maze.Obtain_Starting_point()/Xmax;
+int seaX = maze.Obtain_Starting_point()-seaY*Xmax;
+int seaY1 = maze.Obtain_destination()/Xmax;
+int seaX1 = maze.Obtain_destination()-seaY1*Xmax;
+int poor_road = abs(seaX1 - seaX) + abs(seaY1 - seaY);//估测起点和终点的距离
+//偏移量
+int OffsetX[4] = {-1,0,0,1};//x偏移量
+int OffsetY[4] = {0,-1,1,0};//y偏移量
+int Delivery_mission = 1;//送代范围
+bool Found_you = false;//是否找到了终点(false/true)
+struct Recor_G{
+int newH;//估测价值
+int newG;//实际已走
+int newF;//总价值(后期请使用估测+实际获取)
+int Dir_Suo_X;//X位置索引
+int Dir_Suo_Y;//Y位置索引
+};
+struct History{
+int x,y;//历史位置
+};
+History Historymap[Ymax][Xmax];//历史记录
+int distance[Ymax][Xmax];//记录步数
+//记录终点和起点的距离
+
+while(!Found_you){//送代循环
+
+for(int i = 0;i<Ymax;i++){
+    for(int j = 0;j<Xmax;j++){
+        distance[i][j] = Xmax*Ymax;//初始化一个很大的数
+    }
+}
+distance[seaY][seaX] = 0;//起点步数为0
+
+std::vector<Recor_G> Record_List;//A*记录价值
+Record_List.push_back({poor_road, 0, poor_road, seaX, seaY});//导入起点
+
+while(Record_List.size()){
+int TemMax = Record_List[0].newF,Tem=0;
+for(int i = 0;i<Record_List.size();i++){
+    if(TemMax>Record_List[i].newF){
+        TemMax=Record_List[i].newF;
+        Tem=i;
+        }
+    }
+int Task_X = Record_List[Tem].Dir_Suo_X;//x位置
+int Task_Y = Record_List[Tem].Dir_Suo_Y;//y位置
+//bool Delete_task = true;
+Record_List.erase(Record_List.begin()+Tem);//删除任务
+
+for(int i = 0;i<4;i++){
+    int NewY = Task_Y + OffsetY[i];
+    int NewX = Task_X + OffsetX[i];
+    if(!maze.Boundary_check(NewX,NewY) || distance[NewY][NewX]>=Delivery_mission){continue;}//超过范围以及送代范围跳过本次循环    
+
+    if(maze.Tag_Information(NewX,NewY,maze.Maze_walls_Enum) || distance[NewY][NewX]<=distance[Task_Y][Task_X]+1){continue;}//不符合加入队列条件
+    Historymap[NewY][NewX] = {Task_X,Task_Y};//记录历史记录  
+    if(maze.Check_Destination(NewX,NewY)){Found_you=true;break;}
+     
+    distance[NewY][NewX] = distance[Task_Y][Task_X]+1;//记录实际已走距离
+    int Estimated_distance = abs(seaX1 - NewX) + abs(seaY1 - NewY);//估测距离
+    Record_List.push_back(
+        {
+            Estimated_distance,//估测距离
+            distance[NewY][NewX],//实际行走
+            Estimated_distance + distance[NewY][NewX],//总价值(估测距离+实际行走)
+            NewX,
+            NewY
+                }
+            );
+            maze.Mark_Trace(NewX,NewY,maze.Maze_aipath_Enum); //标记地图
+            std::stringstream Current_content;
+            Current_content << "Processing[" << NewX << "," << NewY << "," << Delivery_mission << "|" << Record_List.size() <<"]";
+            maze.Map_loading(Current_content.str());
+        }
+    if(Found_you){break;}    
+    }
+    
+    Delivery_mission++;
+}
+//回溯循环
+while(!maze.Check_starting_point(seaX1,seaY1)){
+int History_Y = Historymap[seaY1][seaX1].y;
+int History_X = Historymap[seaY1][seaX1].x;
+seaY1 = History_Y;
+seaX1 = History_X;
+maze.Mark_Trace(seaX1,seaY1,maze.Maze_Shortest_route);
+
+std::stringstream Current_content;
+Current_content << "Shortest path...[" << seaX1 << "," << seaY1 << "]";
+maze.Map_loading(Current_content.str());
+    }
+}
+
+void Search_Algorithm_IDA_Star(Maze_AI& maze){
+int Xmax = maze.X_Map_Max(),Ymax = maze.Y_Map_Max();
+int seaY1 = maze.Obtain_destination()/Xmax;
+int seaX1 = maze.Obtain_destination()-seaY1*Xmax;
+int seaY = maze.Obtain_Starting_point()/Xmax;
+int seaX = maze.Obtain_Starting_point()-seaY*Xmax;
+int poor_road = abs(seaX1 - seaX) + abs(seaY1 - seaY);//估测起点和终点的距离
+int next_f_limit = INT_MAX;
+int f_limit = poor_road;
+//偏移量
+struct History{
+int x,y;
+};
+int distance[Ymax][Xmax];//记录步数
+int OffsetX[4] = {-1,0,0,1};//x偏移量
+int OffsetY[4] = {0,-1,1,0};//y偏移量
+History Historymap[Ymax][Xmax];//记录历史记录
+distance[seaY][seaX] = 0;//起点步数为0
+bool Found_you = false;//是否找到了终点(false/true)
+//f_limit = poor_road;
+while(!Found_you){
+next_f_limit = INT_MAX;
+/*优化可以把这一段放到while外面*/
+for(int i = 0;i<Ymax;i++){
+    for(int j = 0;j<Xmax;j++){
+        distance[i][j] = Xmax*Ymax;//初始化一个很大的数
+    }
+}
+distance[seaY][seaX] = 0;//起点步数为0
+
+std::vector<int> Processing_Queue;
+Processing_Queue.push_back(maze.Obtain_Starting_point());
+while(Processing_Queue.size()){
+//f_limit = next_f_limit;
+int Handle = Processing_Queue.size()-1;
+int Task_X = maze.Get_indexX(Processing_Queue[Handle]);
+int Task_Y = maze.Get_indexY(Processing_Queue[Handle]);
+bool Delete_task = true;
+for(int k = 0;k<4;k++){
+int New_X = Task_X + OffsetX[k];
+int New_Y = Task_Y + OffsetY[k];
+int Estimated_distance = abs(seaX1 - New_X) + abs(seaY1 - New_Y);//估测距离
+if(!maze.Boundary_check(New_X,New_Y)){continue;}//超过范围以及送代范围跳过本次循环
+if(distance[New_Y][New_X]+Estimated_distance>f_limit){
+    if(distance[New_Y][New_X]+Estimated_distance<next_f_limit)
+    next_f_limit = distance[New_Y][New_X]+Estimated_distance;
+    continue;
+}
+if(maze.Tag_Information(New_X,New_Y,maze.Maze_walls_Enum) || distance[Task_Y][Task_X] + 1 >= distance[New_Y][New_X]){continue;}//不符合加入队列条件
+Historymap[New_Y][New_X] = {Task_X,Task_Y};//记录历史记录
+if(maze.Check_Destination(New_X,New_Y)){Found_you=true;break;}
+distance[New_Y][New_X] = distance[Task_Y][Task_X]+1;//记录实际已走距离
+Processing_Queue.push_back(maze.Get_position_index(New_X,New_Y));//加入处理队列
+maze.Mark_Trace(New_X,New_Y,maze.Maze_aipath_Enum);//标记地图
+Delete_task = false;
+std::stringstream Current_content;
+Current_content << "Processing[" << New_X << "," << New_Y << "," << f_limit << "|" << Processing_Queue.size() <<"]";
+maze.Map_loading(Current_content.str());
+}
+if(Found_you){break;}
+if(Delete_task){Processing_Queue.erase(Processing_Queue.begin()+Handle);}
+    }
+f_limit = next_f_limit;
+}
+//回溯循环
+int Starting_point = maze.Obtain_Starting_point();
+int destinationY = maze.Get_indexY(maze.Obtain_destination());
+int destinationX = maze.Get_indexX(maze.Obtain_destination());
+while(Starting_point!=destinationY*Xmax+destinationX){
+int History_Y = Historymap[destinationY][destinationX].y;
+int History_X = Historymap[destinationY][destinationX].x;
+maze.Mark_Trace(destinationX,destinationY,maze.Maze_Shortest_route);
+destinationY = History_Y;
+destinationX = History_X;
+std::stringstream Current_content;
+Current_content << "Shortest path...[" << destinationX << "," << destinationY << "]";
+maze.Map_loading(Current_content.str());
+    }
 }
