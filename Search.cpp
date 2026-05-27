@@ -1116,3 +1116,59 @@ Current_content << "Shortest path...[" << destinationX << "," << destinationY <<
 maze.Map_loading(Current_content.str());
     }
 }
+
+void randomized_DepthFirst_Search(Maze_AI& maze){//随机深度搜索(DFS)
+int Xmax = maze.X_Map_Max(),Ymax = maze.Y_Map_Max();
+int Starting_point_X = maze.Get_indexX(maze.Obtain_Starting_point());
+int Starting_point_Y = maze.Get_indexY(maze.Obtain_Starting_point());
+bool Found_you = false;//是否找到了终点(false/true)
+struct Struct_xy{
+    int x,y;
+};
+Struct_xy Historymap[Ymax][Xmax];//记录历史记录
+std::vector<Struct_xy> Handle_tasks;//任务列表
+int Offset_Number[4] = {0,1,2,3};
+int Offset_X[4] = {-1,0,0,1};//x偏移量
+int Offset_Y[4] = {0,-1,1,0};//y偏移量
+std::random_device rd;  // 获取真随机数种子
+std::mt19937 rng(rd());   // 创建随机数引擎
+Handle_tasks.push_back({Starting_point_X,Starting_point_Y});//导入起点
+while(Handle_tasks.size()){
+bool Delete_task = true;
+int Handle_tasks_size = Handle_tasks.size()-1;
+int Task_X = Handle_tasks[Handle_tasks_size].x;
+int Task_Y = Handle_tasks[Handle_tasks_size].y;
+std::shuffle(Offset_Number,Offset_Number+4,rng);//随机打乱顺序
+for(int i = 0;i<4;i++){
+int Search_X = Task_X + Offset_X[Offset_Number[i]];
+int Search_Y = Task_Y + Offset_Y[Offset_Number[i]];
+if(!maze.Boundary_check(Search_X,Search_Y) || maze.Tag_Information(Search_X,Search_Y,maze.Maze_walls_Enum)){continue;}//超过范围以及墙壁跳过本次循环
+if(maze.Tag_Information(Search_X,Search_Y,maze.Maze_aipath_Enum)){continue;}//已经标记过的跳过本次循环
+Historymap[Search_Y][Search_X] = {Task_X,Task_Y};//记录历史记录
+if(maze.Check_Destination(Search_X,Search_Y)){Found_you=true;break;}//检查是否终点
+maze.Mark_Trace(Search_X,Search_Y,maze.Maze_aipath_Enum);//标记地图
+Handle_tasks.push_back({Search_X,Search_Y});//加入任务列表
+Delete_task = false;
+std::stringstream Current_content;//刷新地图
+Current_content << "Processing[" << Search_X << "," << Search_Y << "]";
+maze.Map_loading(Current_content.str());
+    }
+if(Found_you){break;}
+if(Delete_task){Handle_tasks.erase(Handle_tasks.begin()+Handle_tasks_size);}
+}
+//回溯循环
+int Starting_point = maze.Obtain_Starting_point();
+int destinationY = maze.Get_indexY(maze.Obtain_destination());
+int destinationX = maze.Get_indexX(maze.Obtain_destination());
+
+while(!maze.Check_starting_point(destinationX,destinationY)){
+int History_Y = Historymap[destinationY][destinationX].y;
+int History_X = Historymap[destinationY][destinationX].x;
+maze.Mark_Trace(destinationX,destinationY,maze.Maze_Shortest_route);
+destinationY = History_Y;
+destinationX = History_X;
+std::stringstream Current_content;
+Current_content << "Shortest path...[" << destinationX << "," << destinationY << "]";
+maze.Map_loading(Current_content.str());
+    }
+}

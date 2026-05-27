@@ -34,7 +34,7 @@
 - Greedy 贪婪算法 
     [部分复合算法实现]
 - Random 随机算法 
-    [待实现]
+    [已实现]
 - Recursive Backtracking 递归回溯算法 
     [待实现]
 - Iterative Deepening 迭代深度搜索 
@@ -46,7 +46,7 @@
 - MST Minimum Spanning Tree 最小生成树算法 
     [已实现]
 - Kruskal 克鲁斯卡尔算法 
-    [待实现]
+    [已实现(变体)]
 - Prim 普里姆算法 
     [已实现]
 - Bellman-Ford 贝尔曼-福特算法 
@@ -56,6 +56,8 @@
 - Johnson 约翰内斯算法 
     [待实现]
 - Recursive Division 递归分割算法 
+    [已实现]
+- Search_Algorithm_IDA_Star IDA*算法
     [已实现]
 - ...【待补充】
 # 项目使用

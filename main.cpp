@@ -115,6 +115,13 @@ Maze_Simulation.add_Search(
     [&Maze_Simulation]() { Search_Algorithm_IDA_Star(Maze_Simulation); },
     100
 );
+//randomized_DepthFirst_Search
+Maze_Simulation.add_Search(
+    "randomized_DepthFirst_Search",
+    "randomized_DepthFirst_Search[v1.2]",
+    [&Maze_Simulation]() { randomized_DepthFirst_Search(Maze_Simulation); },
+    100
+);
 
 Maze_Simulation.Parameter_Start_data(argc,argv);//模式选择(主函数)
 

@@ -26,4 +26,5 @@ void Search_Algorithm_JPS(Maze_AI& maze);
 void Iterative_Deepening(Maze_AI& maze);
 void Iterative_Deepening_A_Star(Maze_AI& maze);
 void Search_Algorithm_IDA_Star(Maze_AI& maze);
+void randomized_DepthFirst_Search(Maze_AI& maze);
 #endif // MAZE_FACTORY_H
