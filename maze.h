@@ -51,7 +51,7 @@ bool ESC_Exit_Status = false;//ESC退出状态
 bool Accelerate_Status = false;//加速状态
 bool Decelerate_Status = false;//减速状态
 
-
+int Log_Level = 0;//日志级别
 
 int mapMax;//地图总大小
 int Start_Time;//运行时间计时器
@@ -61,7 +61,7 @@ int Time_Duration;//运行时间
 int Select_Create;//用户选择的生成算法
 int Select_Search;//用户选择的搜索算法
 std::string Project_Version = "V3.4.04(Graphical)";//项目版本
-std::string Warehouse_link = R"(https://github.com/DIM1873111/Maze-Simulation-Test-Framework-)";
+std::string Warehouse_link = R"(https://github.com/DIM1873111/Maze-Simulation-Test-Framework-)";//项目仓库链接
 
 std::vector<std::vector<int>> maze_map;//地图数据
 
@@ -118,8 +118,9 @@ Scan_Mark_colors = {80,80,80},
 Gold_Coin_Tag_colors = {255,215,0},
 Maze_empty_colors = {0,0,0},
 Maze_walls_colors = {255,255,255},
-Maze_unknown_colors = {255,255,255};
-
+Maze_unknown_colors = {255,255,255},
+Map_Scan_Focus_colors = {27,65,36},//扫描焦点
+Map_Search_Focus_colors = {30,101,45};//搜索焦点
 
 Map_data_colors createColorFromJson(const nlohmann::json& colorArray);//从json数据中获取颜色
 //主函数
@@ -138,7 +139,7 @@ void cout_title();//输出标题
 //初始化函数
 void End_Point();//终起xy初始化(运行完生成算法后)
 void Close_window();//关闭窗口
-void exits(std::string Error_message,int Exit_Type = Error_exit);//退出函数
+
 
 void map_Render_Display();//最后一次刷新起点终点
 
@@ -163,6 +164,8 @@ Maze_Searching_Traces1=3,//寻找痕迹1
 Maze_Searching_Traces2=4,//寻找痕迹2
 Maze_Shortest_route=5,//最短路线标记
 
+Map_Scan_Focus_Enum=6,//扫描焦点
+Map_Search_Focus_Enum=7,//搜索焦点
 };
 //工具函数
 bool Boundary_check(int x,int y);//检查边界是否合法
@@ -182,6 +185,7 @@ void Set_Starting_point(int Index);//设置地图起点
 
 int Obtain_destination();//获取地图终点位置(引索)
 int Obtain_Starting_point();//获取地图起点位置(引索)
+int Get_position_index(int x,int y);//计算引索对应的坐标引索
 int Random_number(int Min,int Max);//随机数生成
 int Get_the_time();//获取当前时间
 
@@ -190,7 +194,7 @@ int Get_indexY(int Index);//计算引索对应的Y坐标
 void add_Create(std::string Name,std::string Introduction,std::function<void()> Run,int Type,Mazemapdata Initialization);//添加创造库
 void add_Search(std::string Name,std::string Introduction,std::function<void()> Run,int Type);//添加搜索库
 void Map_loading(std::string mapdata);//刷新地图
-
+void exits(std::string Error_message,int Exit_Type = Error_exit);//退出函数
 //主函数
 
 void Parameter_Start_data(int Parameter,char* mapdata[]);//启动模式选择

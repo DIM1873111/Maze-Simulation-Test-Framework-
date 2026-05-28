@@ -327,7 +327,7 @@ Cycle = 0;//每次循环开始时重置循环标记
                 if(distance[i][j] > distance[ScanY][ScanX] + 1){
                     distance[i][j] = distance[ScanY][ScanX] + 1;
                     Cycle = 1;
-                    maze.Mark_Trace(j,i,maze.Scan_Mark);
+                    maze.Mark_Trace(j,i,maze.Map_Scan_Focus_Enum);
                     //maze_map[i][j] = Scan_Mark;  // 标记这个格子被更新
                     }
                 
@@ -1146,7 +1146,7 @@ if(!maze.Boundary_check(Search_X,Search_Y) || maze.Tag_Information(Search_X,Sear
 if(maze.Tag_Information(Search_X,Search_Y,maze.Maze_aipath_Enum)){continue;}//已经标记过的跳过本次循环
 Historymap[Search_Y][Search_X] = {Task_X,Task_Y};//记录历史记录
 if(maze.Check_Destination(Search_X,Search_Y)){Found_you=true;break;}//检查是否终点
-maze.Mark_Trace(Search_X,Search_Y,maze.Maze_aipath_Enum);//标记地图
+maze.Mark_Trace(Search_X,Search_Y,maze.Map_Search_Focus_Enum);//标记地图
 Handle_tasks.push_back({Search_X,Search_Y});//加入任务列表
 Delete_task = false;
 std::stringstream Current_content;//刷新地图
@@ -1172,3 +1172,145 @@ Current_content << "Shortest path...[" << destinationX << "," << destinationY <<
 maze.Map_loading(Current_content.str());
     }
 }
+
+
+
+void lrta_star_search(Maze_AI& maze){//LRTA(实时A)**
+int Xmax = maze.X_Map_Max(),Ymax = maze.Y_Map_Max();
+int Starting_point_Y = maze.Get_indexY(maze.Obtain_Starting_point());
+int Starting_point_X = maze.Get_indexX(maze.Obtain_Starting_point());
+int destination_Y = maze.Get_indexY(maze.Obtain_destination());
+int destination_X = maze.Get_indexX(maze.Obtain_destination());
+int h_table[Ymax][Xmax];//估测距离
+int OffsetX[4] = {-1,0,0,1};//x偏移量
+int OffsetY[4] = {0,-1,1,0};//y偏移量
+bool Found_you = false;//是否找到了终点(false/true)
+struct TotalCost_Struct{
+int Number;//移动编号(偏移量)
+int f;//总代价
+int h;//估测代价
+};
+for(int i = 0;i<Ymax;i++){
+    for(int j = 0;j<Xmax;j++){
+        h_table[i][j] = abs(destination_X - j) + abs(destination_Y - i);;//初始化
+    }
+}
+
+int Task_X = Starting_point_X;//导入起点
+int Task_Y = Starting_point_Y;
+while(!Found_you){
+TotalCost_Struct Highest_value = {-1,INT_MAX,0};
+
+    for(int i = 0;i<4;i++){
+    int Search_X = Task_X + OffsetX[i];
+    int Search_Y = Task_Y + OffsetY[i];
+    if(!maze.Boundary_check(Search_X,Search_Y) || maze.Tag_Information(Search_X,Search_Y,maze.Maze_walls_Enum)){continue;}//超过范围以及墙壁跳过本次循环}
+    //if(Step_Map[Task_Y][Task_X] + 1 >= Step_Map[Search_Y][Search_X]){continue;}
+    int move_cost = 1;//移动代价
+    int h = h_table[Search_Y][Search_X];//估测距离
+    int f = move_cost + h;//总代价
+    if(f <= Highest_value.f){
+       Highest_value = {i,f,h};
+        }
+    }
+    if(Highest_value.Number == -1){maze.exits("No path found",false);}
+    h_table[Task_Y][Task_X] = Highest_value.f;
+
+
+    int Search_X = Task_X + OffsetX[Highest_value.Number];
+    int Search_Y = Task_Y + OffsetY[Highest_value.Number];   
+    maze.Mark_Trace(Search_X,Search_Y,maze.Map_Search_Focus_Enum);//标记为已走
+    Task_X = Search_X; Task_Y = Search_Y;//移动到下一个位置
+    if(maze.Check_Destination(Task_X,Task_Y)){Found_you=true;}
+
+
+    //刷新地图
+    std::stringstream Current_content;
+    Current_content << "Processing[" << Task_X << "," << Task_Y << "|" << h_table[Task_Y][Task_X] << "]";
+    maze.Map_loading(Current_content.str());
+    }
+}
+
+void Greedy_ADIM_search(Maze_AI& maze){//贪婪搜索(A)
+    //贪心最佳优先的框架 + Dijkstra的距离记录 + 简单的反哺机制
+    //Dim原创算法[20260529]
+int Xmax = maze.X_Map_Max(),Ymax = maze.Y_Map_Max();
+int Starting_point_Y = maze.Get_indexY(maze.Obtain_Starting_point());
+int Starting_point_X = maze.Get_indexX(maze.Obtain_Starting_point());
+int destination_Y = maze.Get_indexY(maze.Obtain_destination());
+int destination_X = maze.Get_indexX(maze.Obtain_destination());
+int Step_count[Ymax][Xmax];//行走距离
+int OffsetX[4] = {-1,0,0,1};//x偏移量
+int OffsetY[4] = {0,-1,1,0};//y偏移量
+bool Found_you = false;//是否找到了终点(false/true)
+struct TotalCost_Struct{
+int Number;//移动编号(偏移量)
+int f;//总代价
+int g;//实际行走
+int h;//估测代价
+};
+for(int i = 0;i<Ymax;i++){
+    for(int j = 0;j<Xmax;j++){
+        Step_count[i][j] = INT_MAX;//初始化
+    }
+}
+Step_count[Starting_point_Y][Starting_point_X] = 0;//起点行走距离为0
+
+int Task_X = Starting_point_X;//导入起点
+int Task_Y = Starting_point_Y;
+while(!Found_you){
+TotalCost_Struct Highest_value = {-1,INT_MAX,0};
+
+    for(int i = 0;i<4;i++){
+    int Search_X = Task_X + OffsetX[i];
+    int Search_Y = Task_Y + OffsetY[i];
+    if(!maze.Boundary_check(Search_X,Search_Y) || maze.Tag_Information(Search_X,Search_Y,maze.Maze_walls_Enum)){continue;}//超过范围以及墙壁跳过本次循环}
+    //if(Step_Map[Task_Y][Task_X] + 1 >= Step_Map[Search_Y][Search_X]){continue;}
+    int h = abs(destination_X - Search_X) + abs(destination_Y - Search_Y);//估测距离
+    int g = Step_count[Search_Y][Search_X]+1;//实际行走
+    int f = g + h;//总代价
+    if(f <= Highest_value.f){
+      Highest_value = {i,f,g,h};
+        }
+    }
+    if(Highest_value.Number == -1){maze.exits("No path found",false);}
+
+    int Search_X = Task_X + OffsetX[Highest_value.Number];
+    int Search_Y = Task_Y + OffsetY[Highest_value.Number];   
+    maze.Mark_Trace(Search_X,Search_Y,maze.Map_Search_Focus_Enum);//标记为已走
+    Step_count[Search_Y][Search_X] = Step_count[Task_Y][Task_X] + 1;//实际行走
+    Task_X = Search_X; Task_Y = Search_Y;//移动到下一个位置
+    if(maze.Check_Destination(Task_X,Task_Y)){Found_you=true;}
+
+
+    //刷新地图
+    std::stringstream Current_content;
+    Current_content << "Processing[" << Task_X << "," << Task_Y << "|" << Step_count[Task_Y][Task_X] << "]";
+    maze.Map_loading(Current_content.str());
+    }
+}
+
+
+
+
+/*
+6. LRTA(实时A)**
+一边移动一边学习
+不预先计算完整路径
+适合实时决策场景
+五、随机与演化算法
+7. 随机游走
+完全随机选择方向
+优点：实现极其简单
+缺点：效率极低，可能永远找不到
+变体：随机游走+回溯（你之前实现的随机DFS就是这种思想的进化）
+8. 蚁群算法
+模拟蚂蚁释放信息素
+路径被走越多，信息素越浓
+适合寻找近似最优解
+应用：复杂迷宫、多目标路径规划
+9. 遗传算法
+将路径编码为基因
+通过选择、交叉、变异进化
+适合非常复杂的迷宫
+*/

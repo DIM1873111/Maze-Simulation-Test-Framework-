@@ -59,6 +59,8 @@
     [已实现]
 - Search_Algorithm_IDA_Star IDA*算法
     [已实现]
+- LRTAA 线性规划算法
+    [已实现]
 - ...【待补充】
 # 项目使用
 1. 编译

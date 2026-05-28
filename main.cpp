@@ -122,6 +122,20 @@ Maze_Simulation.add_Search(
     [&Maze_Simulation]() { randomized_DepthFirst_Search(Maze_Simulation); },
     100
 );
+//lrta_star_search
+Maze_Simulation.add_Search(
+    "lrta_star_search",
+    "“Dot” search series[v1]",
+    [&Maze_Simulation]() { lrta_star_search(Maze_Simulation); },
+    100
+);
+//Greedy_A_search
+Maze_Simulation.add_Search(
+    "Greedy_ADIM_search",
+    "“Dot” search series[v1],Original algorithm!",
+    [&Maze_Simulation]() { Greedy_ADIM_search(Maze_Simulation); },
+    100
+);
 
 Maze_Simulation.Parameter_Start_data(argc,argv);//模式选择(主函数)
 

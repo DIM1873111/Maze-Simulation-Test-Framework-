@@ -45,6 +45,7 @@ if(Document.is_open()){
     Speed_Adjustment = Config.value("Speed_Adjustment",Speed_Adjustment);//渲染速度调节(大小)
     Adjust_Zoom = Config.value("Adjust_Zoom",Adjust_Zoom);//超时自动调整缩放比例
     End_waiting = Config.value("End_waiting",End_waiting);//结束等待时间
+    Log_Level = Config.value("Log_Level",Log_Level);//日志级别
 //读取颜色配置(并设置默认值)
 nlohmann::json 
 Maze_Destination_colorsArray = Config.value("Maze_Destination_colors", nlohmann::json({Maze_Destination_colors.r,Maze_Destination_colors.g,Maze_Destination_colors.b})),
@@ -85,6 +86,7 @@ Config = {
 {"Speed_Adjustment",Speed_Adjustment},//渲染速度调节(大小)
 {"Adjust_Zoom",Adjust_Zoom},//超时自动调整缩放比例
 {"End_waiting",End_waiting},//结束等待时间
+{"Log_Level",Log_Level},
 
 {"Maze_Destination_colors",{Maze_Destination_colors.r,Maze_Destination_colors.g,Maze_Destination_colors.b}},
 {"Maze_Starting_point_colors",{Maze_Starting_point_colors.r,Maze_Starting_point_colors.g,Maze_Starting_point_colors.b}},
@@ -195,7 +197,7 @@ maae_data_initialization();//正常模式启动
 //显示菜单以及启动数据检查
 void Maze_AI::maae_data_initialization(){//显示菜单(交互模式启动)
     int XnewValue=0,YnewValue=0,Pathfinding=0,Generation=0;
-    cout_title();
+    //cout_title();
     //std::cout << "[Dim|C++]Maze_Simulation_\033[4m" << Project_Version << "\033[0m" << std::endl;
     if(Algorithm_Library_Create.size()==0){
     std::cout << "\033[2mGeneration algorithm not found\033[0m" << std::endl;
@@ -361,6 +363,15 @@ switch(maze_map[y][x]){
     Rendering_map[y][x] = {Proportion,sf::Color(Scan_Mark_colors.r, Scan_Mark_colors.g, Scan_Mark_colors.b)};break;
     case Gold_Coin_Tag:
     Rendering_map[y][x] = {Proportion,sf::Color(Gold_Coin_Tag_colors.r, Gold_Coin_Tag_colors.g, Gold_Coin_Tag_colors.b)};break;
+    //Map_Scan_Focus_Enum
+    case Map_Scan_Focus_Enum:
+    maze_map[y][x] = Scan_Mark;
+    Rendering_map[y][x] = {Proportion,sf::Color(Map_Scan_Focus_colors.r, Map_Scan_Focus_colors.g, Map_Scan_Focus_colors.b)};break;
+    //Map_Search_Focus_Enum
+    case Map_Search_Focus_Enum:
+    maze_map[y][x] = Maze_aipath_Enum;
+    Rendering_map[y][x] = {Proportion,sf::Color(Map_Search_Focus_colors.r, Map_Search_Focus_colors.g, Map_Search_Focus_colors.b)};break;
+    
     default://未知数据
     Rendering_map[y][x] = {Proportion,sf::Color(Maze_unknown_colors.r, Maze_unknown_colors.g, Maze_unknown_colors.b)};break;
     } 
@@ -556,7 +567,7 @@ Log_output(Log_stream.str(),Log_Information);
 }
 }
 
-int Maze_AI::Random_number(int Min,int Max){
+int Maze_AI::Random_number(int Min,int Max){//随机数生成
 if (Min > Max){
     std::swap(Min, Max);
     Log_stream << "Swapped Min and Max[" << Min << "," << Max << "]";
@@ -575,6 +586,22 @@ std::chrono::system_clock::now().time_since_epoch()
 
 return Start_Time_void.count();//返回
 }
+
+int Maze_AI::Get_position_index(int x,int y){
+    if(Boundary_check(x,y)){
+    Log_stream << "Get data[" << x << "," << y << "]:" << y*Xmax+x;
+    Log_output(Log_stream.str(),Log_Information);
+    return y*Xmax+x;
+    }else{
+    Log_stream << "Failed to obtain[" << x << "," << y << "]:" << "null";
+    Log_output(Log_stream.str(),Log_Warning);
+    //退出
+    exits("The acquired position is beyond the map",Error_exit);
+    return 0;
+    }
+}
+
+
 
 //收尾函数实现
 
@@ -614,20 +641,23 @@ std::cout << "Time["<<Time_Duration<<"/s]["<< Xmax << "*" << Ymax << "]\033[94m[
 }
 
 void Maze_AI::Log_output(std::string message,Log_Type Type){//日志输出
-    std::cout << "\033[2m[" <<Time_Duration<<"s]\033[0m" ;//输出时间
+    //std::cout << "\033[2m[" <<Time_Duration<<"s]\033[0m" ;//输出时间
 
     switch (Type)// 输出日志类型
     {
     case Log_Error:
-        std::cout << "\033[31m[!]\033[0m" << message;break;
+        if(Log_Level>Log_Error)
+        std::cout << "\033[2m[" <<Time_Duration<<"s]\033[0m" << "\033[31m[!]\033[0m" << message << std::endl;;break;
         case Log_Warning:
-        std::cout << "\033[33m[*]\033[0m" << message;break;
+        if(Log_Level>=Log_Warning)
+        std::cout << "\033[2m[" <<Time_Duration<<"s]\033[0m" << "\033[33m[*]\033[0m" << message << std::endl;;break;
         case Log_Information:
-        std::cout << "\033[32m[i]\033[0m" << message;break;
+        if(Log_Level>=Log_Information)
+        std::cout << "\033[2m[" <<Time_Duration<<"s]\033[0m" << "\033[32m[i]\033[0m" << message << std::endl;;break;
         default://未知类型
-        std::cout << "\033[32m[?]\033[0m" << message;break; 
+        std::cout << "\033[2m[" <<Time_Duration<<"s]\033[0m" << "\033[32m[?]\033[0m" << message << std::endl;;break; 
     }
-    std::cout << std::endl;//换行
+    //std::cout << std::endl;//换行
     Log_stream.str("");
     Log_stream.clear();
 }
