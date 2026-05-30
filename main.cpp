@@ -136,6 +136,13 @@ Maze_Simulation.add_Search(
     [&Maze_Simulation]() { Greedy_ADIM_search(Maze_Simulation); },
     100
 );
+//Ant_Colony_Algorithm
+Maze_Simulation.add_Search(
+    "Ant_Colony_Algorithm",
+    "Ant Colony Optimization[v1]",
+    [&Maze_Simulation]() { Ant_Colony_Algorithm(Maze_Simulation); },
+    100
+);
 
 Maze_Simulation.Parameter_Start_data(argc,argv);//模式选择(主函数)
 

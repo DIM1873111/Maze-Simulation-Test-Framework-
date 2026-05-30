@@ -1290,6 +1290,182 @@ TotalCost_Struct Highest_value = {-1,INT_MAX,0};
     }
 }
 
+void Ant_Colony_Algorithm(Maze_AI& maze){//蚂蚁算法
+struct Ant{
+    int x,y;//
+    std::vector<std::pair<int,int>> path;//路径
+};
+struct Statistics{
+    int Probability_Start;//选择概率开始的范围
+    int Probability_End;//选择概率结束的范围
+    int i;//方向
+};
+int Xmax = maze.X_Map_Max(),Ymax = maze.Y_Map_Max();
+int Starting_point_Y = maze.Get_indexY(maze.Obtain_Starting_point());//起点Y位置索引
+int Starting_point_X = maze.Get_indexX(maze.Obtain_Starting_point());//起点X位置索引
+int pheromone[Ymax][Xmax];//信息素浓度
+
+
+int Number_of_ants = Xmax*Ymax/5;//蚂蚁数量
+int frequency = 5;//信息素挥发频率(每走frequency只蚂蚁挥发一次)
+int Volatility_Frequency = Number_of_ants/frequency;//信息素挥发频率
+int  Pheromone_ratio  = Xmax*Ymax;//信息素浓度比例
+int Reset_Pheromone_ratio = (Xmax*Ymax)*0.2;//重置信息素浓度比例
+
+for(int i = 0;i<Ymax;i++){
+    for(int j = 0;j<Xmax;j++){
+        pheromone[i][j] = Reset_Pheromone_ratio;//初始化信息素浓度
+    }
+}
+int OffsetX[4] = {-1,0,0,1};//x偏移量
+int OffsetY[4] = {0,-1,1,0};//y偏移量
+
+int Number_of_finishes = 0;//找到终点的蚂蚁数量
+
+while(Number_of_ants){
+if(Number_of_ants == 1 && Number_of_finishes == 0){//如果所有蚂蚁都死了还没有找到路径
+//重置
+Number_of_ants = Xmax*Ymax/5;//蚂蚁数量
+//Volatility_Frequency = Number_of_ants/frequency;//信息素挥发频率
+for(int i = 0;i<Ymax;i++){
+    for(int j = 0;j<Xmax;j++){
+        pheromone[i][j] = Reset_Pheromone_ratio;//初始化信息素浓度
+        }
+    }  
+}
+static int Volatility_Counter = 0;
+bool Death = false;//是否死亡(false/true)
+int Clean = 0;//挥发计数
+bool Found_you = false;//是否找到了终点(false/true)
+Ant Task = {Starting_point_X,Starting_point_Y,{{Starting_point_X,Starting_point_Y}}};//导入起点
+    while(!Death){
+        std::vector<Statistics> Statistics_Vector;
+        int Probability_Start = 1; // 从 1 开始
+
+        for(int i = 0; i < 4; i++){
+            int Search_X = Task.x + OffsetX[i];
+            int Search_Y = Task.y + OffsetY[i];
+            if(!maze.Boundary_check(Search_X,Search_Y) || maze.Tag_Information(Search_X,Search_Y,maze.Maze_walls_Enum)){continue;}
+            if(maze.Tag_Information(Search_X,Search_Y,maze.Maze_aipath_Enum)){continue;}
+            int Probability = pheromone[Search_Y][Search_X];
+            int Probability_End = Probability_Start + Probability - 1; 
+            Statistics_Vector.push_back({Probability_Start, Probability_End, i});
+            Probability_Start = Probability_End + 1; 
+        }
+        if(Statistics_Vector.size() == 0){Death = true; continue;}
+
+        int Choose = maze.Random_number(1,Probability_Start - 1);//随机选择一个方向
+        for(int i = 0;i<Statistics_Vector.size();i++){
+            if(Choose>=Statistics_Vector[i].Probability_Start && Choose<=Statistics_Vector[i].Probability_End){
+                int Search_X = Task.x + OffsetX[Statistics_Vector[i].i];
+                int Search_Y = Task.y + OffsetY[Statistics_Vector[i].i];
+                Task.path.push_back({Search_X,Search_Y});//记录路径
+                maze.Mark_Trace(Search_X,Search_Y,maze.Maze_aipath_Enum);
+                Task.x = Search_X; Task.y = Search_Y;//移动到下一个位置
+                break;//选择了这个方向就跳出循环
+            }
+        }
+        
+        /*
+        std::stringstream Current_content;
+        Current_content << "Information evaporation...[" << Number_of_ants <<","<< Number_of_finishes << "," << pheromone[Task.y][Task.x] << "]";
+        maze.Map_loading(Current_content.str());//太费时间
+        */
+        if(maze.Check_Destination(Task.x,Task.y)){Found_you=true;}//检查是否到了终点
+        if(Found_you){Death=true;}//检查标记(是否达到了终点)
+        if(Statistics_Vector.size()==0){Death=true;}//没有可选方向那么死亡
+        
+    }
+    if(Found_you){
+        //找到终点，更新信息素
+        Found_you = false;
+        Number_of_finishes++;
+        for(int i = 0;i<Task.path.size();i++){
+            int x = Task.path[i].first;
+            int y = Task.path[i].second;
+            pheromone[y][x] += Pheromone_ratio/Task.path.size();//增加信息素浓度
+        }
+    }else{
+        //没有找到终点，减少死亡路径的信息素
+        for(int i = 0;i<Task.path.size();i++){
+            int x = Task.path[i].first;
+            int y = Task.path[i].second;
+            pheromone[y][x] -= Pheromone_ratio/Task.path.size();//减少信息素浓度
+        }
+    }
+
+    for(int i = 0;i<Task.path.size();i++){//清理路径
+            int x = Task.path[i].first;
+            int y = Task.path[i].second;
+            maze.Mark_Trace(x,y,maze.Map_Scan_Focus_Enum);
+            maze.Map_loading("Clear the map");
+        }
+
+
+    Number_of_ants--;//蚂蚁数量-1
+    Volatility_Counter++;//挥发计数+1
+
+
+        //信息素挥发
+        if(Volatility_Frequency==Volatility_Counter){//达到挥发频率
+        for(int i = 0;i<Ymax;i++){
+            for(int j = 0;j<Xmax;j++){
+                pheromone[i][j] -= Pheromone_ratio*0.1;//挥发率为20%          
+                }
+            }
+            Volatility_Counter = 0;//重置挥发计数
+        }
+
+        //设置信息素浓度上下限
+        for(int i = 0;i<Ymax;i++){
+            for(int j = 0;j<Xmax;j++){
+                if(pheromone[i][j]<1){pheromone[i][j]=1;}//设置信息素浓度下限
+                if(pheromone[i][j]>Pheromone_ratio){pheromone[i][j]=Pheromone_ratio;}//设置信息素浓度上限  
+            }
+        }
+
+        //刷新地图
+        std::stringstream Current_content;
+        Current_content << "Information evaporation...[" << Number_of_ants <<","<< Number_of_finishes << "," << pheromone[Task.y][Task.x] << "]";
+        maze.Map_loading(Current_content.str());//太费时间
+
+
+}
+
+
+struct Planning{
+    int pheromonE;//信息素浓度
+    int i;//方向
+};
+while(!maze.Check_Destination(Starting_point_X,Starting_point_Y)){
+Planning Statistics = {-1,-1};//规划统计数据
+for(int i = 0;i<4;i++){
+    int Search_X = Starting_point_X + OffsetX[i];
+    int Search_Y = Starting_point_Y + OffsetY[i];
+    if(!maze.Boundary_check(Search_X,Search_Y) || maze.Tag_Information(Search_X,Search_Y,maze.Maze_walls_Enum)){continue;}//超过范围以及墙壁跳过本次循环
+    if(maze.Tag_Information(Search_X,Search_Y,maze.Maze_Shortest_route))continue;//已经标记过的跳过本次循环
+    int Search = pheromone[Search_Y][Search_X];
+    if(Search>Statistics.pheromonE){
+    Statistics = {pheromone[Search_Y][Search_X], i};//记录统计数据
+    }
+}
+if(Statistics.i==-1){maze.exits("No path found",false);}//没有可选方向了
+int Search_X = Starting_point_X + OffsetX[Statistics.i];
+int Search_Y = Starting_point_Y + OffsetY[Statistics.i];
+maze.Mark_Trace(Search_X,Search_Y,maze.Maze_Shortest_route);//标记为最短路径
+Starting_point_X = Search_X; Starting_point_Y = Search_Y;//移动到下一个位置
+//刷新地图
+std::stringstream Current_content;
+Current_content << "Shortest path...[" << Starting_point_X << "," << Starting_point_Y << "]";
+maze.Map_loading(Current_content.str());
+    }
+
+}
+
+
+
+
+
 
 
 
