@@ -150,7 +150,13 @@ Maze_Simulation.add_Search(
     [&Maze_Simulation]() { group_adim__search(Maze_Simulation); },
     100
 );
-
+//Two_way_group_adim__search
+Maze_Simulation.add_Search(
+    "Two_way_group_adim__search",
+    "Original algorithm!",
+    [&Maze_Simulation]() { Two_way_group_adim__search(Maze_Simulation); },
+    100
+);
 Maze_Simulation.Parameter_Start_data(argc,argv);//模式选择(主函数)
 
 return 0;

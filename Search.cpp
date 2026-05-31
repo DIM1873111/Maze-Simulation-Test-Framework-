@@ -1580,11 +1580,16 @@ for(int i = 0;i<Fastest_route_vector.size();i++){
 
 }
 
-/*
-void group_adim__search(Maze_AI& maze){//group_ADIM搜索(A)
-    //贪心最佳优先的框架 + Dijkstra的距离记录 + 简单的反哺机制 + 蚂蚁算法的启发式信息素(在这里是g)
+
+void Two_way_group_adim__search(Maze_AI& maze){//group_ADIM搜索(A)
+    //贪心最佳优先的框架 + Dijkstra的距离记录 + 简单的反哺机制 + 蚂蚁算法的启发式信息素(在这里是g) + 双向搜索
     //G代替了多个作用
-    //Dim原创算法[20260529]
+    //Dim原创算法[20260531]
+
+struct TotalCost_Struct{
+int Number;//移动编号(偏移量)
+int f_Value;//总代价
+};
 
 int Xmax = maze.X_Map_Max(),Ymax = maze.Y_Map_Max();
 int Starting_point_Y = maze.Get_indexY(maze.Obtain_Starting_point());
@@ -1595,97 +1600,167 @@ int destination_X = maze.Get_indexX(maze.Obtain_destination());
 
 int OffsetX[4] = {-1,0,0,1};//x偏移量
 int OffsetY[4] = {0,-1,1,0};//y偏移量
+/*默认1,0就是另一个找到终点直接停止 可以根据自己需要调整乘数*/
+int Early_stop_multiplier = 1;//提前停止乘数(当两条路线的长度之和小于最快路径长度*提前停止乘数时就提前停止搜索)
 
-
-struct TotalCost_Struct{
-int Number;//移动编号(偏移量)
-int f_Value;//总代价
-};
-int Step_count[Ymax][Xmax];//行走距离
-std::fill(Step_count[0], Step_count[0] + Ymax * Xmax, INT_MAX);//初始化行走距离
-Step_count[Starting_point_Y][Starting_point_X] = 0;//起点行走距离为0
+int Step_count_a[Ymax][Xmax];//行走距离
+int Step_count_b[Ymax][Xmax];//行走距离
+std::fill(Step_count_a[0], Step_count_a[0] + Ymax * Xmax, INT_MAX);//初始化行走距离
+std::fill(Step_count_b[0], Step_count_b[0] + Ymax * Xmax, INT_MAX);//初始化行走距离
+Step_count_a[Starting_point_Y][Starting_point_X] = 0;//路线起点行走距离为0(起点)
+Step_count_b[destination_Y][destination_X] = 0;//路线起点行走距离为0(终点)
 
 bool Search_ended = false;//搜索是否结束(false/true)
-int Fastest_route_Length = INT_MAX;//最快路径长度
-int Current_route_Length = INT_MAX;//当前路径长度
-std::vector<std::pair<int, int>> Current_route_vector;//当前路径
-std::vector<std::pair<int, int>> Fastest_route_vector;//最快路径
-while(!Search_ended){
-Search_ended = true;//提前设置搜索结束(如果没有找到更优路径就结束)
-bool Found_you = false;//是否找到了终点(false/true)
-int Task_X = Starting_point_X;//导入起点
-int Task_Y = Starting_point_Y;
 
-std::vector<std::pair<int, int>> Historical_line_vector;//历史路径统计数据
-while(!Found_you){
-TotalCost_Struct Highest_value = {-1,INT_MAX};
+int Fastest_route_Length = INT_MAX;//最快路径长度
+std::vector<std::pair<int, int>> Fastest_route_vector;//最快路径
+
+while(!Search_ended){
+
+Search_ended = true;//提前设置搜索结束(如果没有找到更优路径就结束)
+bool Found_you_a = false;//是否找到了终点(false/true)(a)
+bool Found_you_b = false;//是否找到了起点(false/true)(b)
+
+int Task_X_a = Starting_point_X;//导入起点(起点)
+int Task_Y_a = Starting_point_Y;
+
+int Task_X_b = destination_X;//导入终点(终点)
+int Task_Y_b = destination_Y;
+
+std::vector<std::pair<int, int>> Historical_line_vector_a;//历史路径统计数据(a)
+std::vector<std::pair<int, int>> Historical_line_vector_b;//历史路径统计数据(b)
+
+while(!(Found_you_a && Found_you_b)){
+
+    if(!Found_you_a){//A路线
+    TotalCost_Struct Highest_value = {-1,INT_MAX};
 
     for(int i = 0;i<4;i++){
-    int Search_X = Task_X + OffsetX[i];
-    int Search_Y = Task_Y + OffsetY[i];
+    int Search_X = Task_X_a + OffsetX[i];
+    int Search_Y = Task_Y_a + OffsetY[i];
     if(!maze.Boundary_check(Search_X,Search_Y) || maze.Tag_Information(Search_X,Search_Y,maze.Maze_walls_Enum)){continue;}//超过范围以及墙壁跳过本次循环}
     int h = abs(destination_X - Search_X) + abs(destination_Y - Search_Y);//计算估测距离
-    int g = Step_count[Search_Y][Search_X]+1;//实际行走
+    int g = Step_count_a[Search_Y][Search_X]+1;//实际行走
     int f = g + h;//总代价
     if(f <= Highest_value.f_Value){
       Highest_value = {i,f};
         }
     }
+    if(Highest_value.Number == -1){maze.exits("No path found",false);}//没有可选方向了
 
-    if(Highest_value.Number == -1){maze.exits("No path found",false);}
+    int Search_X = Task_X_a + OffsetX[Highest_value.Number];
+    int Search_Y = Task_Y_a + OffsetY[Highest_value.Number];
+    if(maze.Check_Destination(Search_X,Search_Y)){Found_you_a=true;}    
 
-    int Search_X = Task_X + OffsetX[Highest_value.Number];
-    int Search_Y = Task_Y + OffsetY[Highest_value.Number];
-    if(maze.Check_Destination(Search_X,Search_Y)){Found_you=true;}    
 
-    maze.Mark_Trace(Search_X,Search_Y,maze.Map_Scan_Focus_Enum);//标记
 
-    Step_count[Search_Y][Search_X] = Step_count[Task_Y][Task_X] + 1;//实际行走
+    Step_count_a[Search_Y][Search_X] = Step_count_a[Task_Y_a][Task_X_a] + 1;//实际行走
 
-    auto it = std::find(Historical_line_vector.begin(), Historical_line_vector.end(), std::make_pair(Search_X,Search_Y));
+    auto it = std::find(Historical_line_vector_a.begin(), Historical_line_vector_a.end(), std::make_pair(Search_X,Search_Y));
     std::pair<int,int> Next_Pos = std::make_pair(Search_X, Search_Y);//即将行走的位置
 
-    if(it != Historical_line_vector.end()){//如果这个位置在历史路径中出现过
-
-        Historical_line_vector.erase(it + 1, Historical_line_vector.end());
-
+    if(it != Historical_line_vector_a.end()){//如果这个位置在历史路径中出现过
+    Historical_line_vector_a.erase(it + 1, Historical_line_vector_a.end());
     }else{
-
-        if(Historical_line_vector.empty()){
-            Historical_line_vector.push_back({Starting_point_X,Starting_point_Y});//导入起点
-        }
-        
-        Historical_line_vector.push_back(Next_Pos);//加入历史路径统计数据
+    if(Historical_line_vector_a.empty()){
+        Historical_line_vector_a.push_back({Starting_point_X,Starting_point_Y});//导入起点
+    }
+    Historical_line_vector_a.push_back(Next_Pos);//加入历史路径统计数据
+    maze.Mark_Trace(Search_X,Search_Y,maze.Map_Scan_Focus_Enum);//标记    
     }
 
-    Task_X = Search_X;
-    Task_Y = Search_Y;//移动到下一个位置
+    Task_X_a = Search_X;
+    Task_Y_a = Search_Y;//移动到下一个位置
+    }
 
+    if(Found_you_a){
+    for(int i = 0;i<Historical_line_vector_a.size();i++){
+        int x = Historical_line_vector_a[i].first;
+        int y = Historical_line_vector_a[i].second;
+        Step_count_a[y][x] = Historical_line_vector_a.size();//设置行走距离
+        maze.Mark_Trace(x,y,maze.Map_Search_Focus_Enum);//标记
+            }
+    }    
+
+    if(!Found_you_b){
+    TotalCost_Struct Highest_value = {-1,INT_MAX};
+
+    for(int i = 0;i<4;i++){
+    int Search_X = Task_X_b + OffsetX[i];
+    int Search_Y = Task_Y_b + OffsetY[i];
+    if(!maze.Boundary_check(Search_X,Search_Y) || maze.Tag_Information(Search_X,Search_Y,maze.Maze_walls_Enum)){continue;}//超过范围以及墙壁跳过本次循环}
+    int h = abs(Starting_point_X - Search_X) + abs(Starting_point_Y - Search_Y);//计算估测距离
+    int g = Step_count_b[Search_Y][Search_X]+1;//实际行走
+    int f = g + h;//总代价
+    if(f <= Highest_value.f_Value){
+      Highest_value = {i,f};
+        }
+    }
+    if(Highest_value.Number == -1){maze.exits("No path found",false);}//没有可选方向了
+
+    int Search_X = Task_X_b + OffsetX[Highest_value.Number];
+    int Search_Y = Task_Y_b + OffsetY[Highest_value.Number];
+    if(maze.Check_starting_point(Search_X,Search_Y)){Found_you_b=true;}    
+
+
+
+    Step_count_b[Search_Y][Search_X] = Step_count_b[Task_Y_b][Task_X_b] + 1;//实际行走
+    auto it = std::find(Historical_line_vector_b.begin(), Historical_line_vector_b.end(), std::make_pair(Search_X,Search_Y));
+    std::pair<int,int> Next_Pos = std::make_pair(Search_X, Search_Y);//即将行走的位置
+
+    if(it != Historical_line_vector_b.end()){//如果这个位置在历史路径中出现过
+    Historical_line_vector_b.erase(it + 1, Historical_line_vector_b.end());
+    }else{
+    if(Historical_line_vector_b.empty()){
+        Historical_line_vector_b.push_back({destination_X,destination_Y});//导入终点
+    }
+    Historical_line_vector_b.push_back(Next_Pos);//加入历史路径统计数据
+    maze.Mark_Trace(Search_X,Search_Y,maze.Map_Scan_Focus_Enum);//标记    
+    }
+
+    Task_X_b = Search_X;
+    Task_Y_b = Search_Y;//移动到下一个位置
+    }
+
+    if(Found_you_b){
+    for(int i = 0;i<Historical_line_vector_b.size();i++){
+        int x = Historical_line_vector_b[i].first;
+        int y = Historical_line_vector_b[i].second;
+        Step_count_b[y][x] = Historical_line_vector_b.size();//设置行走距离
+        maze.Mark_Trace(x,y,maze.Map_Search_Focus_Enum);//标记
+            }
+    }
+
+
+
+    if(Fastest_route_Length>Historical_line_vector_a.size() && Found_you_a){
+    Fastest_route_vector = Historical_line_vector_a;//更新最快路径统计数据
+    Fastest_route_Length = Fastest_route_vector.size();//更新最快路径长度
+    Search_ended = false;//找到更优路径，继续搜索
+    }
+
+    if(Fastest_route_Length>Historical_line_vector_b.size() && Found_you_b){
+    Fastest_route_vector = Historical_line_vector_b;//更新最快路径统计数据
+    Fastest_route_Length = Fastest_route_vector.size();//更新最快路径长度
+    Search_ended = false;//找到更优路径，继续搜索
+    }
+
+    if(Found_you_a && !Found_you_b && Historical_line_vector_b.size()>Historical_line_vector_a.size()*Early_stop_multiplier){
+    //强制B停止
+    Found_you_b = true;
+    }else if(Found_you_b && !Found_you_a && Historical_line_vector_a.size()>Historical_line_vector_b.size()*Early_stop_multiplier){
+    //强制A停止
+    Found_you_a = true;
+    }
 
     //刷新地图
     std::stringstream Current_content;
-    Current_content << "Processing[" << Task_X << "," << Task_Y << "|" << Step_count[Task_Y][Task_X] << "]";
+    Current_content << "Processing[" << Task_X_a << "," << Task_Y_a << "|" << Step_count_a[Task_Y_a][Task_X_a] << "|-|" << Task_X_b << "," << Task_Y_b << "|" << Step_count_b[Task_Y_b][Task_X_b] <<"]";
     maze.Map_loading(Current_content.str());
 
-        if(Found_you){
-            for(int i = 0;i<Historical_line_vector.size();i++){
-                int x = Historical_line_vector[i].first;
-                int y = Historical_line_vector[i].second;
-                Step_count[y][x] = Historical_line_vector.size();//设置行走距离
-                maze.Mark_Trace(x,y,maze.Map_Scan_Focus_Enum);//标记
-                    }
-                Current_route_Length = Historical_line_vector.size();//更新最快路径
-                Current_route_vector = Historical_line_vector;//更新当前路径统计数据
-            }
-        }
-
-    if(Current_route_Length<Fastest_route_Length){
-        Fastest_route_Length = Current_route_Length;//更新最快路径
-        Fastest_route_vector = Current_route_vector;//更新最快路径统计数据
-        Search_ended = false;//找到更优路径，继续搜索
     }
+}
 
-    }
 //标记最快路径
 for(int i = 0;i<Fastest_route_vector.size();i++){
     int x = Fastest_route_vector[i].first;
@@ -1698,7 +1773,7 @@ for(int i = 0;i<Fastest_route_vector.size();i++){
 }
 
 }
-*/
+
 
 
 /*
