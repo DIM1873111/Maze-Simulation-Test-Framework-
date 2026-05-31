@@ -29,4 +29,6 @@ void Search_Algorithm_IDA_Star(Maze_AI& maze);
 void randomized_DepthFirst_Search(Maze_AI& maze);
 void lrta_star_search(Maze_AI& maze);
 void Greedy_ADIM_search(Maze_AI& maze);
+void Ant_Colony_Algorithm(Maze_AI& maze);
+void group_adim__search(Maze_AI& maze);
 #endif // MAZE_FACTORY_H
