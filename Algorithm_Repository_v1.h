@@ -13,6 +13,7 @@ void Maze_Factory(Maze_AI& maze);
 void generateMazeByPrim(Maze_AI& maze);
 void Recursive_Division(Maze_AI& maze);
 void MST_Minimum_Spanning_Tree(Maze_AI& maze);
+void Wilson_algorithm(Maze_AI& maze);
 
 void Maze_pathfinding(Maze_AI& maze);
 void Bidirectional_BFS(Maze_AI& maze);
@@ -32,4 +33,5 @@ void Greedy_ADIM_search(Maze_AI& maze);
 void Ant_Colony_Algorithm(Maze_AI& maze);
 void group_adim__search(Maze_AI& maze);
 void Two_way_group_adim__search(Maze_AI& maze);
+void Wilson_algorithm(Maze_AI& maze);
 #endif // MAZE_FACTORY_H

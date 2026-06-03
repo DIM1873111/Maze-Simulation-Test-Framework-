@@ -37,7 +37,14 @@ Maze_Simulation.add_Create(
     100,
     Maze_Simulation.Maze_walls_Enum
 );
-
+//Wilson_algorithm
+Maze_Simulation.add_Create(
+    "Wilson_algorithm",
+    "Wilson's algorithm[v1]",
+    [&Maze_Simulation]() { Wilson_algorithm(Maze_Simulation); },
+    100,
+    Maze_Simulation.Maze_walls_Enum
+);
 
 
 Maze_Simulation.add_Search(
@@ -157,6 +164,12 @@ Maze_Simulation.add_Search(
     [&Maze_Simulation]() { Two_way_group_adim__search(Maze_Simulation); },
     100
 );
+
+
+
+
+
+
 Maze_Simulation.Parameter_Start_data(argc,argv);//模式选择(主函数)
 
 return 0;

@@ -321,3 +321,111 @@ if(Starting_point_flag){//第一次设置起点
 maze.Set_destination(Temporary_endpoint);
 
 }
+
+void Wilson_algorithm(Maze_AI& maze){//生成迷宫(Wilson算法)
+int Xmax = maze.X_Map_Max();
+int Ymax = maze.Y_Map_Max();
+int Guide[4]={0,1,2,3};//偏移量编号
+int XOffset[4]={-1,0,1,0};//x偏移量
+int YOffset[4]={0,-1,0,1};//y偏移量
+bool Visited_Points[Ymax][Xmax];//访问点列表
+std::fill(Visited_Points[0], Visited_Points[0] + Ymax * Xmax, false);//初始化为未访问
+std::vector<std::pair<int,int>> Unvisited_Points;//未访问点列表
+
+bool Y_interval = false;
+bool X_interval = false;
+for(int i = 0;i<Ymax;i++){
+    Y_interval = !Y_interval;
+    if(Y_interval){
+    for(int j = 0;j<Xmax;j++){
+        X_interval = !X_interval;
+        if(X_interval){
+            Unvisited_Points.push_back({j,i});//加入未访问点列表
+            }
+        }
+    }
+}
+
+int Starting_point_index = maze.Random_number(0,Unvisited_Points.size()-1);//设置起点
+int Starting_point_X = Unvisited_Points[Starting_point_index].first;
+int Starting_point_Y = Unvisited_Points[Starting_point_index].second;
+maze.Set_Starting_point(Starting_point_Y*Xmax+Starting_point_X);
+Visited_Points[Starting_point_Y][Starting_point_X] = true;//标记为已访问(设起点为已访问)
+
+
+while(Unvisited_Points.size()){
+
+bool found = false;//是否找到已访问点
+int Random_selection = maze.Random_number(0,Unvisited_Points.size()-1);//随机选择一个未访问点
+int Task_X = Unvisited_Points[Random_selection].first;//设置任务起始点
+int Task_Y = Unvisited_Points[Random_selection].second;
+int Last_direction = -1;//上一个方向
+std::vector<std::pair<int,int>> History;//历史记录(当前临时路线)
+
+while(!found){//路线循环
+std::shuffle(Guide, Guide + 4, std::mt19937(std::random_device()()));//随机偏移量
+
+
+
+int Search_X,Search_Y;
+int Half_X,Half_Y;
+for(int i = 0;i<4;i++){//四个方向随便找一个
+Search_X = Task_X + XOffset[Guide[i]] * 2;
+Search_Y = Task_Y + YOffset[Guide[i]] * 2;
+Half_X = Task_X + XOffset[Guide[i]];
+Half_Y = Task_Y + YOffset[Guide[i]];
+if(!maze.Boundary_check(Search_X, Search_Y)){continue;}//边界检查
+if(Last_direction == Guide[i]){continue;}//如果是上一个方向 那么跳过(防止原地踏步)
+Last_direction = Guide[i];//记录上一个方向
+break;
+}
+
+auto it = std::find(History.begin(), History.end(), std::make_pair(Search_X, Search_Y));
+if(it != History.end()){//如果这个点在历史路径中出现过
+History.erase(it + 1, History.end());//擦除这个点之后的历史路径(回退)
+Task_X = History.back().first;
+Task_Y = History.back().second;
+continue;//跳过循环
+}else{
+if(History.size() == 0){//如果历史是空的先把起点塞进去
+History.push_back({Task_X,Task_Y});
+}
+History.push_back({Half_X, Half_Y});//加入中间点(墙壁点)
+History.push_back({Search_X, Search_Y});
+// 注意：必须先记录墙壁点，再记录目标点！
+// 错误顺序会导致路径不连续不知道为啥
+// 花费3天调试重构一次才发现这个问题 已气笑 =)
+Task_X = Search_X;//移动到下一个点
+Task_Y = Search_Y;
+}
+
+
+if(Visited_Points[Search_Y][Search_X]){//如果这个点在已访问列表中
+for(int i = 0;i<History.size();i++){
+    int Mark_X = History[i].first;
+    int Mark_Y = History[i].second;
+    //if(!Visited_Points[Mark_Y][Mark_X]){
+    Visited_Points[Mark_Y][Mark_X] = true;//标记为已访问    
+    //}
+
+    auto it = std::find(Unvisited_Points.begin(), Unvisited_Points.end(), std::make_pair(Mark_X, Mark_Y));
+    if(it != Unvisited_Points.end()){//如果这个点在未访问列表中
+        Unvisited_Points.erase(it);//从未访问列表中删除
+    }
+    maze.Mark_Trace(Mark_X, Mark_Y, maze.Maze_empty_Enum);//标记路径
+
+    std::stringstream Current_content;//刷新地图
+    Current_content << "Create a maze[" << Mark_X << "," << Mark_Y << "," << Unvisited_Points.size() <<"]";
+    maze.Map_loading(Current_content.str());
+
+
+}
+found = true;//找到已访问点
+continue;//跳过循环(实际上是结束这个路线循环 进入下一个未访问点的路线循环)
+}
+
+
+
+        }
+    }
+}

@@ -61,7 +61,7 @@
     [已实现]
 - LRTAA 线性规划算法
     [已实现]
-- Ant_Colony_Algorithm 蚁群算法
+- Wilson_algorithm 威尔逊算法
     [已实现]
 - ...【待补充】
 # 项目使用
