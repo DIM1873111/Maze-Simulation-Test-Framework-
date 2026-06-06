@@ -34,4 +34,5 @@ void Ant_Colony_Algorithm(Maze_AI& maze);
 void group_adim__search(Maze_AI& maze);
 void Two_way_group_adim__search(Maze_AI& maze);
 void Wilson_algorithm(Maze_AI& maze);
+void Genetic_algorithm(Maze_AI& maze);
 #endif // MAZE_FACTORY_H

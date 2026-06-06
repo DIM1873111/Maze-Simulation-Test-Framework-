@@ -42,7 +42,7 @@
 - Simulated Annealing 模拟退火算法 
     [待实现]
 - Genetic Algorithm 遗传算法 
-    [待实现]
+    [已实现]
 - MST Minimum Spanning Tree 最小生成树算法 
     [已实现]
 - Kruskal 克鲁斯卡尔算法 

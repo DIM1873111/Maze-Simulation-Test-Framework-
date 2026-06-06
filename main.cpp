@@ -164,7 +164,13 @@ Maze_Simulation.add_Search(
     [&Maze_Simulation]() { Two_way_group_adim__search(Maze_Simulation); },
     100
 );
-
+//Genetic_algorithm
+Maze_Simulation.add_Search(
+    "Genetic_algorithm",
+    "Genetic Algorithm[v1]",
+    [&Maze_Simulation]() { Genetic_algorithm(Maze_Simulation); },
+    100
+);
 
 
 
