@@ -16,6 +16,8 @@
 - Maze_Searching_Traces2=4,//寻找痕迹2
 - Maze_Shortest_route=5,//最短路线标记
 
+- Map_Scan_Focus_Enum=6,//扫描焦点
+- Map_Search_Focus_Enum=7,//搜索焦点
 ## 操作数据检查
 - Boundary_check(int x,int y);//检查边界是否合法
 - Check_index(int Index);//检查索引是否合法
