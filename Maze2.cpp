@@ -229,7 +229,7 @@ void Mazesimulate::Input_processing::Get_Input(){
 
             std::cout << "Enter parameters to start the simulation" << std::endl;
             std::cout << "[type '-help' to see available parameters]" << std::endl;
-            std::cout << ">";
+            std::cout << "> ";
 
         while(std::cin >> token){
 
@@ -238,16 +238,22 @@ void Mazesimulate::Input_processing::Get_Input(){
 
 
             if(token == "-g"){//如果输入是-g代表开始(结束循环输入)
+
                 break;
-            }
 
-            inputs.push_back(token);
+            }else if(token == "-Resetjson"){
 
-            if(token == "-help"){//如果输入是-help代表显示帮助信息
+                mazesimulate->Log_class.cout_Log("Reset Config File", Log_Exit::Log_type::NOTICE_ENUM);//输出通知日志
+                mazesimulate->Config_class.Create_Config();//创建json文件 并且写入默认配置
+                mazesimulate->Log_class.Exit("Config file reset - > Restart to take effect", Log_Exit::Exit_type::OPERATIONAL_ENUM);
+
+            }else if(token == "-help"){//如果输入是-help代表显示帮助信息
+
                 std::cout << "Available parameters(Put at the back):" << std::endl;
                 std::cout << "-g: Start the simulation" << std::endl;
                 std::cout << "-help: Display available parameters" << std::endl;
                 std::cout << "-exit: Exit the simulation" << std::endl;
+                std::cout << "-Resetjson: Reset Config File" << std::endl;  
                 //配置列表
                 std::cout << "Config Parameter Table:" << std::endl;
                     if(config.empty()){
@@ -261,17 +267,20 @@ void Mazesimulate::Input_processing::Get_Input(){
                         }
 
                     }
-                std::cout << ">" ;
-                //mazesimulate->Log_class.Exit("Help displayed", Log_Exit::Exit_type::STANDARD_ENUM);
-                //break;
-            }
+                std::cout << "> " ;
 
-            if(token == "-exit"){//如果输入是-exit代表退出(结束循环输入)
+            }else if(token == "-exit"){//如果输入是-exit代表退出(结束循环输入)
+
                 mazesimulate->Log_class.Exit("Simulation exited", Log_Exit::Exit_type::OPERATIONAL_ENUM);
                 break;
+
+            }else{
+
+                inputs.push_back(token);//将输入内容存入inputs容器
+
             }
 
-
+            
         }
 
 
@@ -308,17 +317,18 @@ void Mazesimulate::Input_processing::add_config_table(std::string config_name, s
 void Mazesimulate::Input_processing::Matching_config_table(){
 int Invalid_input = 0;
 for(const auto& UserInput : UserInput){
+    bool match = true;
+        for(const auto& config : config){
+            
+            if(UserInput.name == config.config_name){
+                *config.Address = UserInput.value;//匹配配置信息并赋值
+                match = false;
+                break;
+            }
 
-    for(const auto& config : config){
-        bool match = true;
-        if(UserInput.name == config.config_name){
-            *config.Address = UserInput.value;//匹配配置信息并赋值
-            match = false;
-            break;
-        }
-        if(match){//统计无效输入
-            Invalid_input++;
-        }
+            if(match){//统计无效输入
+                Invalid_input++;
+            }
     }
 
 }
@@ -340,13 +350,6 @@ mazesimulate->Log_class.cout_Log(Temporary_log.str(), Log_Exit::Log_type::WARNIN
 
 void Mazesimulate::Data_Processing::Initialize_data(){//初始化数据
 
-
-//测试 
-mazesimulate->Input_class.add_config_table("mapx", "Map X length", &mazesimulate->Map_length_X);//添加配置信息
-mazesimulate->Input_class.add_config_table("mapy", "Map Y length", &mazesimulate->Map_length_Y);//添加配置信息
-mazesimulate->Config_class.Add_config("Map_length_X", &mazesimulate->Map_length_X);//添加配置信息
-mazesimulate->Config_class.Add_config("Map_length_Y", &mazesimulate->Map_length_Y);//添加配置信息
-
 mazesimulate->Config_class.Load_Config();//加载配置文件
 
 mazesimulate->Input_class.Get_Input();//调用用户输入
@@ -359,6 +362,16 @@ std::cout << mazesimulate->Map_length_X << " " << mazesimulate->Map_length_Y << 
 //mazesimulate->Log_class.Exit("Initialization completed", Log_Exit::Exit_type::ERROR_ENUM);
 }
 
+
+void Mazesimulate::Data_Processing::Add_config_table(){//注册配置表信息
+mazesimulate->Input_class.add_config_table("mapx", "Map X length", &mazesimulate->Map_length_X);//添加配置信息
+mazesimulate->Input_class.add_config_table("mapy", "Map Y length", &mazesimulate->Map_length_Y);//添加配置信息
+mazesimulate->Config_class.Add_config("Map_length_X", &mazesimulate->Map_length_X);//添加配置信息
+mazesimulate->Config_class.Add_config("Map_length_Y", &mazesimulate->Map_length_Y);//添加配置信息
+}
+
+
+
 //__________________________________Mazesimulate__________________________________
 
 
@@ -367,5 +380,21 @@ void Mazesimulate::Framework_Entry(){//初始化
 
 Data_class.Initialize_data();//初始化数据
 
+
+}
+
+
+//__________________________________Map_data__________________________________
+void Mazesimulate::Map_data::Initialize_map_data(Map_type Initialization_Type){//初始化地图数据
+
+map_data.assign(mazesimulate->Map_length_X, std::vector<Map_type>(mazesimulate->Map_length_Y, Initialization_Type));//初始化地图数据
+
+
+}
+
+
+std::vector<std::vector<Mazesimulate::Map_data::Map_type>> Mazesimulate::Map_data::Get_map_data(){//获取地图数据
+
+return map_data;//返回地图数据
 
 }

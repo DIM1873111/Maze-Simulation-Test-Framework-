@@ -31,10 +31,48 @@ class Mazesimulate {
 
 
         //前向声明嵌套类
-        class Log_Exit;
-        class Input_processing;
-        class Data_Processing;
-        class Config_Reading;
+        class Log_Exit;//日志或退出处理
+        class Input_processing;//用户输入处理
+        class Data_Processing;//数据处理
+        class Config_Reading;//默认配置读取类(json文件读取)
+        class Map_data;//地图数据操作
+
+
+
+        class Map_data{//地图数据类
+
+            public:
+
+                enum class Map_type{//地图类型
+
+                    FINISH_ENUM = -2,//终点
+                    START_ENUM = -1,//起点
+
+        
+                    EMPTY_ENUM = 0,//空
+                    WALL_ENUM = 1,//墙
+                
+                
+                };
+
+            private://私有
+
+               std::vector<std::vector<Map_type>> map_data;//地图数据
+               Mazesimulate* mazesimulate;//获取Mazesimulate对象
+
+            public://公有
+
+                Map_data(Mazesimulate* p):mazesimulate(p){}//构造函数
+
+
+
+                void Initialize_map_data(Map_type Initialization_Type);//初始化地图数据
+                
+
+                //地图API接口(待做)
+
+                std::vector<std::vector<Map_type>> Get_map_data();//获取地图数据(复制一份)
+        };
 
 
 
@@ -53,7 +91,7 @@ class Mazesimulate {
             
                 std::vector<config_Address> config;//配置表
             
-                void Create_Config();//创建json文件 并且写入默认配置
+                //void Create_Config();//创建json文件 并且写入默认配置
             
                 void Read_config();//从json文件读取配置
                 
@@ -67,7 +105,8 @@ class Mazesimulate {
 
                 void Load_Config();//加载配置
 
-            
+                void Create_Config();//创建json文件 并且写入默认配置
+
         };
 
 
@@ -162,6 +201,7 @@ class Mazesimulate {
 
                 Data_Processing(Mazesimulate* p):mazesimulate(p){}
 
+                void Add_config_table();//快速添加配置
 
                 void Initialize_data();//初始化数据
 
@@ -173,6 +213,7 @@ class Mazesimulate {
 
         //成员对象构造时传入 this
 
+        Map_data Map_class{this};//地图数据对象
         Config_Reading Config_class{this};//配置读取对象
         Log_Exit Log_class{this};//日志处理对象
         Input_processing Input_class{this};//用户输入处理对象
