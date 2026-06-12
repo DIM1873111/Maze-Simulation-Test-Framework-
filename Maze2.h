@@ -16,14 +16,28 @@
 //maze2开始日期2026年6月7日
 //迷宫模拟平台框架(.HPP)
 
+/*
+
+ ____ ____ _________ _________ _________
+|    |    |         |         |         |
+|         |    |    |______   |    _____|
+|  |   |  |    |    |         |         |
+|  |   |  |         |   ______|    _____|
+|  |   |  |    |    |         |         |
+|__|___|__|____|____|_________|_________|
+[Maze2.h框架]
 
 
-//[Maze2.h框架]
+*/
+
 
 class Mazesimulate {
     private:
-
+        int Render_Port = 8080;//渲染端口
         int Max_number_logs = 20;//最大日志数
+        int Calculation_interval = 100;//计算间隔(毫秒)
+
+
         int Map_length_X = 10;//地图长度X
         int Map_length_Y = 10;//地图长度Y
 
@@ -52,13 +66,20 @@ class Mazesimulate {
                     EMPTY_ENUM = 0,//空
                     WALL_ENUM = 1,//墙
                 
-                
+
+                    SEARCH_ENUM = 2,//搜索
+                    SCAN_ENUM = 3,//扫描
+
+                    ROUTE_ENUM = 4,//路线
+
                 };
 
             private://私有
 
                std::vector<std::vector<Map_type>> map_data;//地图数据
                Mazesimulate* mazesimulate;//获取Mazesimulate对象
+               std::pair<int,int> start_position;//起点位置
+               std::pair<int,int> finish_position;//终点位置
 
             public://公有
 
@@ -69,8 +90,29 @@ class Mazesimulate {
                 void Initialize_map_data(Map_type Initialization_Type);//初始化地图数据
                 
 
-                //地图API接口(待做)
+                //地图API接口
 
+
+                bool Check_location_range(int x, int y);//检查地图位置是否有效
+
+                bool Check_a_tag(int x, int y , Map_type a_tag);//检查地图某一个位置是否符合某个标签
+                
+                bool Check_the_finish(int x, int y);//检查地图是否到达终点
+
+                bool Check_the_start(int x, int y);//检查地图是否到达起点
+
+
+
+
+                Map_type Get_location_tag(int x, int y);//获取地图位置标签数据
+
+
+                void Set_location_tag(int x, int y , Map_type a_tag);//设置地图某一个位置标签数据
+
+
+
+
+                
                 std::vector<std::vector<Map_type>> Get_map_data();//获取地图数据(复制一份)
         };
 
@@ -138,11 +180,22 @@ class Mazesimulate {
                    OPERATIONAL_ENUM,//操作退出
                    ERROR_ENUM,//错误退出
                    SYSTEM_ENUM,//系统退出
+
                 };
 
+                enum class Algorithm_Log{//算法日志类型
 
+                    NORMAL_ENUM,//通知日志
+                    ERROR_ENUM,//错误日志
+                    PROCESS_ENUM,//处理日志(算法处理流程)
+                    INITIAL_ENUM,//初始化日志(数据初始化)
+                    
+                };
 
-                void cout_Log(std::string log, Log_type type);//日志函数
+                void cout_Log_system(std::string log, Log_type type);//输出系统日志
+
+                void record_Log_Algorithm(std::string log, Algorithm_Log type);//记录算法日志
+
                 void Exit(std::string exit, Exit_type type);//退出函数
 
         };
@@ -156,27 +209,62 @@ class Mazesimulate {
                 
 
                 //结构体
-                struct config_Address{
-                std::string config_name = "null";//配置名
-                std::string config_description = "null";//配置介绍
-                int* Address;//配置地址
+                struct config_Address{//配置表
+                    
+                    std::string config_name = "null";//配置名
+                    std::string config_description = "null";//配置介绍
+                    int* Address;//配置地址
+                
                 };
 
-                struct User_Input{
-                std::string name;//用户输入配置名
-                int value;//用户输入值
+                struct User_Input{//用户输入表
+
+                    std::string name;//用户输入配置名
+                    int value;//用户输入值
+
                 };
+
+                struct Parameter_Table{//参数表
+
+                    std::string name;//参数名
+                    std::string Guide;//介绍
+                    std::function<void()> Function;//参数函数
+                    bool is_end_input;//是否结束输入
+                };
+
+                enum class Parameter{//参数处理
+
+                    NOT_FOUND_ENUM,//未找到(给配置函数传入)
+                    MATCHING_ENUM,//匹配(操作)
+                    END_INPUT_ENUM,//结束输入
+
+                };
+
 
 
                 std::vector<config_Address> config;//配置信息
                 std::vector<User_Input> UserInput;//用户输入信息
+                std::vector<Parameter_Table> Parameter_table;//参数表
+
 
                 void Matching_config_table();//匹配配置表
+
+                Parameter Matching_Parameter(std::string Input);//匹配参数并返回操作状态
+
+
+                //操作函数(用户输入操作)
+                void help_operate();
+                void Resetjson_operation();
 
             public:
 
 
-                Input_processing(Mazesimulate* p):mazesimulate(p){}
+                Input_processing(Mazesimulate* p):mazesimulate(p){
+                    Parameter_table.push_back({"-help","Help with operations", [this](){help_operate();}, false});//添加默认参数
+                    Parameter_table.push_back({"-g","Start the simulation",[](){}, true});//添加默认开始参数
+                    Parameter_table.push_back({"-exit","Exit the simulation", [this](){mazesimulate->Log_class.Exit("Simulation exited", Log_Exit::Exit_type::OPERATIONAL_ENUM);}, true});//添加默认退出参数
+                    Parameter_table.push_back({"-resetjson","Reset the json file", [this](){Resetjson_operation();}, true});//添加默认重置json参数
+                }
 
 
                 void add_config_table(std::string config_name, std::string config_description, int* Address);//添加配置表
