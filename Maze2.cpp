@@ -266,7 +266,7 @@ exit(0);//退出程序
 void Mazesimulate::Input_processing::help_operate(){//帮助操作
 std::cout << "Available parameters(Default action function):" << std::endl;
 if(config.empty()){
-    
+
     std::cout << "No default action registered." << std::endl;
     
 }else{
@@ -365,55 +365,6 @@ void Mazesimulate::Input_processing::Get_Input(){
 
             if(End_input){break;}//如果结束输入则跳出循环
 
-
-
-            /*
-
-            if(token == "-g"){//如果输入是-g代表开始(结束循环输入)
-
-                break;
-
-            }else if(token == "-Resetjson"){
-
-                mazesimulate->Log_class.cout_Log_system("Reset Config File", Log_Exit::Log_type::NOTICE_ENUM);//输出通知日志
-                mazesimulate->Config_class.Create_Config();//创建json文件 并且写入默认配置
-                mazesimulate->Log_class.Exit("Config file reset - > Restart to take effect", Log_Exit::Exit_type::OPERATIONAL_ENUM);
-
-            }else if(token == "-help"){//如果输入是-help代表显示帮助信息
-
-                std::cout << "Available parameters(Put at the back):" << std::endl;
-                std::cout << "[\033[90m-g\033[0m] Start the simulation" << std::endl;
-                std::cout << "[\033[90m-help\033[0m] Display available parameters" << std::endl;
-                std::cout << "[\033[90m-exit\033[0m] Exit the simulation" << std::endl;
-                std::cout << "[\033[90m-Resetjson\033[0m] Reset Config File" << std::endl;  
-                //配置列表
-                std::cout << "Config Parameter Table:" << std::endl;
-                    if(config.empty()){
-
-                        std::cout << "No configuration parameters available." << std::endl;
-
-                    }else{
-
-                        for(const auto& config : config){
-                        std::cout << "[\033[90m" << config.config_name << "\033[0m]" << config.config_description << " - > " << *config.Address <<std::endl;
-                        }
-
-                    }
-                std::cout << "> " ;
-
-            }else if(token == "-exit"){//如果输入是-exit代表退出(结束循环输入)
-
-                mazesimulate->Log_class.Exit("Simulation exited", Log_Exit::Exit_type::OPERATIONAL_ENUM);
-                break;
-
-            }else{
-
-                inputs.push_back(token);//将输入内容存入inputs容器
-
-            }
-
-           */ 
-
         }
 
 
@@ -453,19 +404,19 @@ void Mazesimulate::Input_processing::add_config_table(std::string config_name, s
 void Mazesimulate::Input_processing::Matching_config_table(){
 int Invalid_input = 0;
 for(const auto& UserInput : UserInput){
-    bool match = true;
+    bool match = false;//设置默认匹配为false
         for(const auto& config : config){
             
             if(UserInput.name == config.config_name){
                 *config.Address = UserInput.value;//匹配配置信息并赋值
-                match = false;
+                match = true;
                 break;
             }
+        }
 
-            if(match){//统计无效输入
-                Invalid_input++;
-            }
-    }
+    if(!match){//统计无效输入
+        Invalid_input++;
+    }    
 
 }
 
