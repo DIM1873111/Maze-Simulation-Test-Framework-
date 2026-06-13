@@ -29,7 +29,7 @@
 
 
 */
-
+//半成品 还在做(未完成)
 
 class Mazesimulate {
     private:
@@ -164,7 +164,7 @@ class Mazesimulate {
 
                 void Load_Config();//加载配置
 
-                void Create_Config();//创建json文件 并且写入默认配置
+                void Create_Config();//创建json文件 并且写入当前配置(第一次运行时调用默认配置)
 
                 void Generate_port_file();//生成渲染端口配置文件
         };
@@ -247,45 +247,45 @@ class Mazesimulate {
                     std::string name;//参数名
                     std::string Guide;//介绍
                     std::function<void()> Function;//参数函数
-                    bool is_end_input;//是否结束输入
+                    //bool is_end_input;//是否结束输入
                 };
 
-                enum class Parameter{//参数处理
-
-                    NOT_FOUND_ENUM,//未找到(给配置函数传入)
-                    MATCHING_ENUM,//匹配(操作)
-                    END_INPUT_ENUM,//结束输入
-
+                struct Go_back{
+                    bool Find_the_mood;//找到状态
+                    int Location;//找到位置
                 };
-
 
 
                 std::vector<config_Address> config;//配置信息
-                std::vector<User_Input> UserInput;//用户输入信息
-                std::vector<Parameter_Table> Parameter_table;//参数表
+                //std::vector<User_Input> UserInput;//用户输入信息
+                std::vector<Parameter_Table> Parameter_table;//参数表(操作)
 
+                void Processing_input(std::vector<std::string> Input);//处理用户输入数据
+                
+                std::vector<std::string> Analyze_raw_inputdata(std::string Input);//解析原始用户输入数据
 
-                void Matching_config_table();//匹配配置表
+                void Matching_config_table(User_Input Input);//匹配配置表
 
-                Parameter Matching_Parameter(std::string Input);//匹配参数并返回操作状态
+                Go_back Matching_Parameter(std::string Input);//匹配参数并返回操作状态
 
                 User_Input Transformation_Config(std::string Input);//转换用户输入成配表格格式
+
+
 
                 //操作函数(用户输入操作)
                 void help_operate();
                 void Resetjson_operation();
-                void Reset_jsonport_operation();
 
 
             public:
 
 
-                Input_processing(Mazesimulate* p):mazesimulate(p){
-                    Parameter_table.push_back({"-help","Help with operations", [this](){help_operate();}, false});//添加默认参数
-                    Parameter_table.push_back({"-g","Start the simulation",[](){}, true});//添加默认开始参数
-                    Parameter_table.push_back({"-exit","Exit the simulation", [this](){mazesimulate->Log_class.Exit("Simulation exited", Log_Exit::Exit_type::OPERATIONAL_ENUM);}, true});//添加默认退出参数
-                    Parameter_table.push_back({"-resetjson","Reset the json file", [this](){Resetjson_operation();}, true});//添加默认重置json参数
-                    Parameter_table.push_back({"-resetjsonport","Refresh port configuration file", [this](){Reset_jsonport_operation();}, true});//添加默认重置json端口参数
+                Input_processing(Mazesimulate* p):mazesimulate(p){//注册操作函数
+                    Parameter_table.push_back({"-help","Help with operations", [this](){help_operate();}});//添加默认参数
+                    Parameter_table.push_back({"-g","Start the simulation",[](){}});//添加默认开始参数
+                    Parameter_table.push_back({"-exit","Exit the simulation", [this](){mazesimulate->Log_class.Exit("Simulation exited", Log_Exit::Exit_type::OPERATIONAL_ENUM);}});//添加默认退出参数
+                    Parameter_table.push_back({"-resetjson","Reset the json file", [this](){Resetjson_operation();}});//添加默认重置json参数
+                    Parameter_table.push_back({"-resetjsonport","Refresh port configuration file", [this](){mazesimulate->Config_class.Generate_port_file();}});//添加默认重置json端口参数
                 }
 
 

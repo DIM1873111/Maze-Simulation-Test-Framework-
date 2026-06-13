@@ -41,12 +41,7 @@ if(std::remove(configPort.c_str())){//删除端口配置文件
         mazesimulate->Log_class.cout_Log_system("Unable to create port configuration file", Log_Exit::Log_type::WARNING_ENUM);//输出错误调用退出
         Create_or_not = false;
 
-    }else{
-    
-        mazesimulate->Log_class.cout_Log_system("Deleted " + configPort + " files", Log_Exit::Log_type::NOTICE_ENUM);//输出通知日志
-    
     }
-
 }
 
 if(Create_or_not){//创建端口配置文件
@@ -323,7 +318,7 @@ if(config.empty()){
 
 }
 
-std::cout << "> " ;
+
 
 }
 
@@ -332,39 +327,64 @@ void Mazesimulate::Input_processing::Resetjson_operation(){//重置json文件
 
 mazesimulate->Log_class.cout_Log_system("Reset Config File", Log_Exit::Log_type::NOTICE_ENUM);//输出通知日志
 mazesimulate->Config_class.Create_Config();//创建json文件 并且写入默认配置
-mazesimulate->Log_class.Exit("Config file reset - > Restart to take effect", Log_Exit::Exit_type::OPERATIONAL_ENUM);
-
-
-}
-
-void Mazesimulate::Input_processing::Reset_jsonport_operation(){//重置渲染端口配置文件
-
-    mazesimulate->Log_class.cout_Log_system("Port configuration refresh requested.", Log_Exit::Log_type::NOTICE_ENUM);//输出通知日志
-    mazesimulate->Config_class.Generate_port_file();//生成渲染端口配置文件
+mazesimulate->Log_class.cout_Log_system("Operation completed", Log_Exit::Log_type::NOTICE_ENUM);//输出通知日志
 
 }
 
 
+std::vector<std::string> Mazesimulate::Input_processing::Analyze_raw_inputdata(std::string Input){
+
+std::vector<std::string> result;//存储解析后的输入数据
+std::string token;//临时存储每个字符串
+std::istringstream iss(Input);//创建输入流
+
+while(iss >> token){//读取输入流
+result.push_back(token);//将读取的字符串存入结果容器
+}
+
+
+return result;//返回解析后的输入数据
+};
 
 
 
 
+Mazesimulate::Input_processing::Go_back Mazesimulate::Input_processing::Matching_Parameter(std::string Input){//匹配参数
 
-Mazesimulate::Input_processing::Parameter Mazesimulate::Input_processing::Matching_Parameter(std::string Input){//匹配参数
+Go_back Back_data = {false, 0};//设置默认参数为未找到
 
-Parameter Go_back = Parameter::NOT_FOUND_ENUM;//设置默认参数为未找到
+for(int i = 0; (size_t)i < Parameter_table.size(); i++){
 
-for(const auto& Parameter : Parameter_table){
-
-if(Parameter.name == Input){//如果输入参数与配置表中的参数匹配
-Parameter.Function();//调用参数函数
-Go_back = (Parameter.is_end_input) ? Parameter::END_INPUT_ENUM : Parameter::MATCHING_ENUM;//设置匹配参数为匹配或结束输入
+if(Parameter_table[i].name == Input){//如果输入参数与配置表中的参数匹配
+Back_data = {true, i};//设置匹配参数为匹配
 break;//跳出循环
 }
 
 }
 
-return Go_back;//返回匹配的参数
+return Back_data;//返回匹配的参数
+}
+
+
+
+void Mazesimulate::Input_processing::Processing_input(std::vector<std::string> Input){
+
+for(const auto& Currently : Input){
+
+Go_back Back_data = Matching_Parameter(Currently);//匹配参数
+
+    if(Back_data.Find_the_mood){//判断输入参数是否找到
+
+        Parameter_table[Back_data.Location].Function();//调用配置表中的动作函数
+
+    }else{//未找到
+
+        Matching_config_table(Transformation_Config(Currently));//匹配配置表
+
+    }
+
+    }
+
 }
 
 
@@ -374,71 +394,39 @@ void Mazesimulate::Input_processing::Get_Input(){
     std::vector<std::string> inputs; //临时存储输入的容器
     std::string token; //临时存储每个字符串
 
-            std::cout << "Enter parameters to start the simulation" << std::endl;
-            std::cout << "[type '-help' to see available parameters]" << std::endl;
-            std::cout << "> ";
-
-/*
-                    NOT_FOUND_ENUM,//未找到(给配置函数传入)
-                    MATCHING_ENUM,//匹配(操作)
-                    END_INPUT_ENUM,//结束输入
-*/
-
-        bool End_input = false;//设置默认结束输入为false
-        while(std::cin >> token){
-
-            switch(Matching_Parameter(token)){
-
-                case Parameter::NOT_FOUND_ENUM://未找到(给配置函数传入)
-                inputs.push_back(token);//将输入内容存入inputs容器
-                break;
-
-                case Parameter::MATCHING_ENUM://匹配(操作)
-                break;
-
-                case Parameter::END_INPUT_ENUM://结束输入
-                End_input = true;
-                break;
-
-            }
-
-            if(End_input){break;}//如果结束输入则跳出循环
-
-        }
+    std::cout << "Enter parameters to start the simulation" << std::endl;
+    std::cout << "[type '-help' to see available parameters]" << std::endl;
+    std::cout << "> ";
 
 
-    for(const auto& input : inputs){//处理输入内容
+    while(std::getline(std::cin, token)){//读取输入
+        
+        Processing_input(Analyze_raw_inputdata(token));//处理输入数据
 
-        std::string strPart;//字符串部分
-        int numPart;//数字部分
-
-
-        size_t pos = input.find_first_of("0123456789");//找到第一个数字的位置
-        if(pos != std::string::npos){
-            strPart = input.substr(0, pos);  // 数字前的字符串
-            numPart = std::stoi(input.substr(pos));  // 数字部分
-        }else{
-            strPart = input;//如果输入没有数字则直接赋值给strPart
-            numPart = 0;//默认值为0
-        }
-
-        UserInput.push_back(User_Input{strPart, numPart});//将输入内容存入UserInput容器
-        //调用日志
-        std::stringstream Temporary_log;
-        Temporary_log << "User input parameters: " << strPart << "," << numPart;
-    
-        mazesimulate->Log_class.cout_Log_system(Temporary_log.str(), Log_Exit::Log_type::PROMPT_ENUM);//输出提示日志
+       std::cout << "> " ;
     }
-
-    Matching_config_table();//匹配配置表
+    std::cout << "-EOF" << std::endl;
+    mazesimulate->Log_class.Exit("Input EOF to exit", Log_Exit::Exit_type::OPERATIONAL_ENUM);//跳出程序
 
 }
 
 Mazesimulate::Input_processing::User_Input Mazesimulate::Input_processing::Transformation_Config(std::string Input){
 
+std::string strPart;//字符串部分
+int numPart;//数字部分
 
 
-    
+size_t pos = Input.find_first_of("0123456789");//找到第一个数字的位置
+if(pos != std::string::npos){
+    strPart = Input.substr(0, pos);  // 数字前的字符串
+    numPart = std::stoi(Input.substr(pos));  // 数字部分
+}else{
+    strPart = Input;//如果输入没有数字则直接赋值给strPart
+    numPart = 0;//默认值为0
+}
+
+return User_Input{strPart, numPart};//返回用户输入内容
+
 }
 
 
@@ -448,30 +436,23 @@ void Mazesimulate::Input_processing::add_config_table(std::string config_name, s
 }
 
 
-//Matching_config_table
-void Mazesimulate::Input_processing::Matching_config_table(){
-int Invalid_input = 0;
-for(const auto& UserInput : UserInput){
-    bool match = false;//设置默认匹配为false
-        for(const auto& config : config){
-            
-            if(UserInput.name == config.config_name){
-                *config.Address = UserInput.value;//匹配配置信息并赋值
-                match = true;
-                break;
-            }
-        }
 
-    if(!match){//统计无效输入
-        Invalid_input++;
-    }    
+void Mazesimulate::Input_processing::Matching_config_table(User_Input Input){
+bool Invalid = false;//无效输入
 
+for(const auto& config : config){
+    
+    if(Input.name == config.config_name){
+        *config.Address = Input.value;//匹配配置信息并赋值
+        Invalid = true;//设置无效输入计数器为真
+        break;
+    }
 }
 
-if(Invalid_input > 0){
+if(!Invalid){
 //输出日志
 std::stringstream Temporary_log;
-Temporary_log << "Invalid input parameters: " << Invalid_input << std::endl;
+Temporary_log << "Invalid input: " << Input.name << " - > " << Input.value << std::endl;
 mazesimulate->Log_class.cout_Log_system(Temporary_log.str(), Log_Exit::Log_type::WARNING_ENUM);//输出错误日志
 
 }
@@ -489,12 +470,6 @@ mazesimulate->Config_class.Load_Config();//加载配置文件
 
 mazesimulate->Input_class.Get_Input();//调用用户输入
 
-std::cout << mazesimulate->Map_length_X << " " << mazesimulate->Map_length_Y << std::endl; //尝试输出地图长度
-
-
-
-
-//mazesimulate->Log_class.Exit("Initialization completed", Log_Exit::Exit_type::ERROR_ENUM);
 }
 
 
