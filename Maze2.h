@@ -34,6 +34,10 @@
 class Mazesimulate {
     private:
         int Render_Port = 8080;//渲染端口
+        int Render_Password = 9999;//渲染口令
+        
+
+
         int Max_number_logs = 20;//最大日志数
         int Calculation_interval = 100;//计算间隔(毫秒)
 
@@ -50,6 +54,8 @@ class Mazesimulate {
         class Data_Processing;//数据处理
         class Config_Reading;//默认配置读取类(json文件读取)
         class Map_data;//地图数据操作
+        class Render_Send;//渲染发送类
+
 
 
 
@@ -68,18 +74,23 @@ class Mazesimulate {
                 
 
                     SEARCH_ENUM = 2,//搜索
-                    SCAN_ENUM = 3,//扫描
+                    SCAN_ENUM = 3,//搜索(扫描)
 
                     ROUTE_ENUM = 4,//路线
 
+                };
+
+                struct Location{//位置结构体
+                    int x;//X坐标
+                    int y;//Y坐标
                 };
 
             private://私有
 
                std::vector<std::vector<Map_type>> map_data;//地图数据
                Mazesimulate* mazesimulate;//获取Mazesimulate对象
-               std::pair<int,int> start_position;//起点位置
-               std::pair<int,int> finish_position;//终点位置
+               Location start_position;//起点位置(first:X,second:Y)
+               Location finish_position;//终点位置
 
             public://公有
 
@@ -109,10 +120,11 @@ class Mazesimulate {
 
                 void Set_location_tag(int x, int y , Map_type a_tag);//设置地图某一个位置标签数据
 
+                void Set_finish_position(int x, int y);//设置终点
+
+                void Set_start_position(int x, int y);//设置起点
 
 
-
-                
                 std::vector<std::vector<Map_type>> Get_map_data();//获取地图数据(复制一份)
         };
 
@@ -130,6 +142,7 @@ class Mazesimulate {
                 };
             
                 std::string configPath = "config.json";//配置文件名
+                std::string configPort = "port.json";//配置渲染端口文件名
             
                 std::vector<config_Address> config;//配置表
             
@@ -137,8 +150,12 @@ class Mazesimulate {
             
                 void Read_config();//从json文件读取配置
                 
-                bool Check_config_file();//检查配置文件是否存在
+                
+
+                bool Check_file(std::string File_name);//检查文件是否存在
             
+
+
             public://公有
 
                 Config_Reading(Mazesimulate* p):mazesimulate(p){}//构造函数
@@ -149,6 +166,7 @@ class Mazesimulate {
 
                 void Create_Config();//创建json文件 并且写入默认配置
 
+                void Generate_port_file();//生成渲染端口配置文件
         };
 
 
@@ -251,10 +269,13 @@ class Mazesimulate {
 
                 Parameter Matching_Parameter(std::string Input);//匹配参数并返回操作状态
 
+                User_Input Transformation_Config(std::string Input);//转换用户输入成配表格格式
 
                 //操作函数(用户输入操作)
                 void help_operate();
                 void Resetjson_operation();
+                void Reset_jsonport_operation();
+
 
             public:
 
@@ -264,6 +285,7 @@ class Mazesimulate {
                     Parameter_table.push_back({"-g","Start the simulation",[](){}, true});//添加默认开始参数
                     Parameter_table.push_back({"-exit","Exit the simulation", [this](){mazesimulate->Log_class.Exit("Simulation exited", Log_Exit::Exit_type::OPERATIONAL_ENUM);}, true});//添加默认退出参数
                     Parameter_table.push_back({"-resetjson","Reset the json file", [this](){Resetjson_operation();}, true});//添加默认重置json参数
+                    Parameter_table.push_back({"-resetjsonport","Refresh port configuration file", [this](){Reset_jsonport_operation();}, true});//添加默认重置json端口参数
                 }
 
 
@@ -283,6 +305,17 @@ class Mazesimulate {
 
                 Mazesimulate* mazesimulate;//获取mazesimulate对象
 
+                int Map_area = 0;//地图面积
+                int Map_route = 0;//路线格数量
+                int Search_Route = 0;//搜索路线格长度
+                int Map_route_proportion  = 0;//原始路线格占比地图(%)
+                int Search_Route_proportion  = 0;//搜索路线格占比Map_route_proportion(%)
+
+                int Stats_route_data(Mazesimulate::Map_data::Map_type map_type);//统计路线地图特定数据数量
+
+                void Statistics_Before();//统计前处理
+
+                void Statistics_After();//统计后处理
 
             public:
 
@@ -297,10 +330,29 @@ class Mazesimulate {
         };
 
 
+        class Render_Send{//渲染发送类
+
+            private://私有
+
+               Mazesimulate* mazesimulate;//获取Mazesimulate对象
+            
+                void Settings_Render_Password();//设置渲染口令
+
+            public://公有
+
+            Render_Send(Mazesimulate* p):mazesimulate(p){
+                Settings_Render_Password();
+            }//构造函数
+
+
+
+
+        };
 
 
         //成员对象构造时传入 this
 
+        Render_Send Render_send{this};//渲染发送对象
         Map_data Map_class{this};//地图数据对象
         Config_Reading Config_class{this};//配置读取对象
         Log_Exit Log_class{this};//日志处理对象
