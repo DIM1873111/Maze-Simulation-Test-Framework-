@@ -31,22 +31,30 @@
 */
 //半成品 还在做(未完成)
 
+
+/*
+*                                                                        
+*                   ※2026年6月15日任务列表                                   
+*       A.算法使用以及调用方法(Algorithm call) - [Regular task]             
+*       任务要求(完成简单的测试确认调用的函数可以使用日志的功能)
+*       (任务状态:已完成)
+*
+*       B.把一整个框架轻微重构(加入TRY/CATCH块)提供更完整的日志功能
+*       而不是直接退出退出(Need to catch exceptions) - [Sudden mission!]
+*       任务要求(完成测试确认无误程序可以正常捕获异常 并且项目大部分函数使用(加入TRY/CATCH块))
+*       (任务状态:已完成)
+*
+*/
+
+
+
+
+
+
+
 class Mazesimulate {
-    private:
-        int Render_Port = 8080;//渲染端口
-        int Render_Password = 9999;//渲染口令
-        
 
-
-        int Max_number_logs = 20;//最大日志数
-        int Calculation_interval = 100;//计算间隔(毫秒)
-
-
-        int Map_length_X = 10;//地图长度X
-        int Map_length_Y = 10;//地图长度Y
-
-
-
+    private://私有
 
         //前向声明嵌套类
         class Log_Exit;//日志或退出处理
@@ -55,120 +63,25 @@ class Mazesimulate {
         class Config_Reading;//默认配置读取类(json文件读取)
         class Map_data;//地图数据操作
         class Render_Send;//渲染发送类
+        class Algorithm_Tools;//算法工具类
 
-
-
-
-        class Map_data{//地图数据类
-
-            public:
-
-                enum class Map_type{//地图类型
-
-                    FINISH_ENUM = -2,//终点
-                    START_ENUM = -1,//起点
-
+        int Render_Port = 8080;//渲染端口
+        int Render_Password = 9999;//渲染口令
         
-                    EMPTY_ENUM = 0,//空
-                    WALL_ENUM = 1,//墙
-                
-
-                    SEARCH_ENUM = 2,//搜索
-                    SCAN_ENUM = 3,//搜索(扫描)
-
-                    ROUTE_ENUM = 4,//路线
-
-                };
-
-                struct Location{//位置结构体
-                    int x;//X坐标
-                    int y;//Y坐标
-                };
-
-            private://私有
-
-               std::vector<std::vector<Map_type>> map_data;//地图数据
-               Mazesimulate* mazesimulate;//获取Mazesimulate对象
-               Location start_position;//起点位置(first:X,second:Y)
-               Location finish_position;//终点位置
-
-            public://公有
-
-                Map_data(Mazesimulate* p):mazesimulate(p){}//构造函数
+        int Max_number_logs = 20;//最大日志数
+        int Calculation_interval = 100;//计算间隔(毫秒)
 
 
+        int Map_length_X = 10;//地图长度X
+        int Map_length_Y = 10;//地图长度Y
 
-                void Initialize_map_data(Map_type Initialization_Type);//初始化地图数据
-                
+        int Map_Max_area = 500*500;//地图最大面积
 
-                //地图API接口
+        int Map_Min_X = 5;//地图最小长度X
+        int Map_Min_Y = 5;//地图最小长度Y
 
-
-                bool Check_location_range(int x, int y);//检查地图位置是否有效
-
-                bool Check_a_tag(int x, int y , Map_type a_tag);//检查地图某一个位置是否符合某个标签
-                
-                bool Check_the_finish(int x, int y);//检查地图是否到达终点
-
-                bool Check_the_start(int x, int y);//检查地图是否到达起点
-
-
-
-
-                Map_type Get_location_tag(int x, int y);//获取地图位置标签数据
-
-
-                void Set_location_tag(int x, int y , Map_type a_tag);//设置地图某一个位置标签数据
-
-                void Set_finish_position(int x, int y);//设置终点
-
-                void Set_start_position(int x, int y);//设置起点
-
-
-                std::vector<std::vector<Map_type>> Get_map_data();//获取地图数据(复制一份)
-        };
-
-
-
-        class Config_Reading{//默认配置读取类(json文件读取)
-
-            private://私有
-
-                Mazesimulate* mazesimulate;
-                
-                struct config_Address{//配置表
-                    std::string config_name;//配置名
-                    int* Address;//配置地址
-                };
-            
-                std::string configPath = "config.json";//配置文件名
-                std::string configPort = "port.json";//配置渲染端口文件名
-            
-                std::vector<config_Address> config;//配置表
-            
-                //void Create_Config();//创建json文件 并且写入默认配置
-            
-                void Read_config();//从json文件读取配置
-                
-                
-
-                bool Check_file(std::string File_name);//检查文件是否存在
-            
-
-
-            public://公有
-
-                Config_Reading(Mazesimulate* p):mazesimulate(p){}//构造函数
-
-                void Add_config(std::string config_name, int* Address);//添加配置
-
-                void Load_Config();//加载配置
-
-                void Create_Config();//创建json文件 并且写入当前配置(第一次运行时调用默认配置)
-
-                void Generate_port_file();//生成渲染端口配置文件
-        };
-
+        int Selected_generation_method = 0;//选择生成方法
+        int Selected_search_method = 0;//选择搜索方法
 
         class Log_Exit{//日志或退出处理
 
@@ -196,7 +109,7 @@ class Mazesimulate {
 
                    STANDARD_ENUM,//标准退出
                    OPERATIONAL_ENUM,//操作退出
-                   ERROR_ENUM,//错误退出
+                   //ERROR_ENUM,//错误退出(算法错误)
                    SYSTEM_ENUM,//系统退出
 
                 };
@@ -214,10 +127,160 @@ class Mazesimulate {
 
                 void record_Log_Algorithm(std::string log, Algorithm_Log type);//记录算法日志
 
+                void Export_history_log();//导出容器日志
+
                 void Exit(std::string exit, Exit_type type);//退出函数
 
         };
 
+
+        class Map_data{//地图数据类
+
+            public:
+
+                enum class Map_type{//地图数据类型
+
+                    FINISH_ENUM = -2,//终点
+                    START_ENUM = -1,//起点
+
+        
+                    EMPTY_ENUM = 0,//空
+                    WALL_ENUM = 1,//墙
+                
+
+                    SEARCH_ENUM = 2,//搜索
+                    SCAN_ENUM = 3,//搜索(扫描)
+
+                    ROUTE_ENUM = 4,//路线
+
+                };
+
+
+                enum class Map_Status{//状态标签
+
+                    NOT_INITIALIZED_ENUM,//未初始化
+                    INITIALIZED_ENUM,//已创建
+                    GENERATED_ENUM,//已生成
+
+                };
+
+                struct Map_Info{//地图信息结构体
+
+                    int practical_X = 0;//地图长度X
+                    int practical_Y = 0;//地图长度Y
+                    int map_area = 0;//地图面积
+                    Map_Status map_status = Map_Status::NOT_INITIALIZED_ENUM;//地图状态
+
+                };
+
+                struct Location{//位置结构体
+                    int x;//X坐标
+                    int y;//Y坐标
+                };
+
+            private://私有
+
+                Map_Info map_info;//创建地图信息
+
+               std::vector<std::vector<Map_type>> map_data;//地图数据
+               Mazesimulate* mazesimulate;//获取Mazesimulate对象
+               Location start_position;//起点位置(first:X,second:Y)
+               Location finish_position;//终点位置
+
+            public://公有
+
+                Map_data(Mazesimulate* p):mazesimulate(p){}//构造函数
+
+
+
+                void Initialize_map_data();//创建实际地图数据
+                
+                void Set_map_alltype(Map_type type);//设置地图类型
+
+                void add_map_status(Map_Status map_status);//设置地图状态
+
+                Map_Info get_map_info();//获取地图信息
+
+                std::vector<std::vector<Map_type>> Get_map_data();//获取地图数据(复制一份)
+                
+                //地图API接口
+
+                bool Check_location_range(int x, int y);//检查地图位置是否有效
+
+                bool Check_a_tag(int x, int y , Map_type a_tag);//检查地图某一个位置是否符合某个标签
+                
+                bool Check_the_finish(int x, int y);//检查地图是否到达终点
+
+                bool Check_the_start(int x, int y);//检查地图是否到达起点
+
+                
+
+
+                Map_type Get_location_tag(int x, int y);//获取地图位置标签数据
+
+                Location Get_finish_position();//获取终点位置
+
+                Location Get_start_position();//获取起点位置
+
+                Location Get_mapsize();//获取地图大小
+
+
+                void Set_location_tag(int x, int y , Map_type a_tag);//设置地图某一个位置标签数据
+
+                void Set_finish_position(int x, int y);//设置终点
+
+                void Set_start_position(int x, int y);//设置起点
+
+                
+        };
+
+
+
+        class Config_Reading{//默认配置读取类(json文件读取)
+
+            private://私有
+
+                Mazesimulate* mazesimulate;
+                
+                struct config_Address{//配置表
+                    std::string config_name;//配置名
+                    int* Address;//配置地址
+                };
+            
+                std::string configPath = "config.json";//配置文件名
+                std::string configPort = "port.json";//配置渲染端口文件名
+            
+                std::vector<config_Address> config;//配置表
+            
+                //void Create_Config();//创建json文件 并且写入默认配置
+            
+                void Read_config();//从json文件读取配置
+                
+                
+
+                bool Check_file(std::string File_name);//检查文件是否存在
+
+                void Add_config(std::string config_name, int* Address);//添加配置
+
+                void Loading_config_table();//加载配置表
+
+                void First_time_Loading();//第一次加载配置(初始化)
+
+            public://公有
+
+                Config_Reading(Mazesimulate* p):mazesimulate(p){//构造函数
+                    Loading_config_table(); //加载配置表
+                    First_time_Loading();//第一次加载配置
+                }
+
+                
+
+                void Load_Config();//加载配置
+
+                void Create_Config();//创建json文件 并且写入当前配置(第一次运行时调用默认配置)
+
+                void Generate_port_file();//生成渲染端口配置文件
+        };
 
         class Input_processing{//用户输入处理
 
@@ -270,26 +333,32 @@ class Mazesimulate {
 
                 User_Input Transformation_Config(std::string Input);//转换用户输入成配表格格式
 
+                void Create_table();//创建表(输入初始化)
 
 
-                //操作函数(用户输入操作)
+                
+
+               //操作函数(用户输入操作)
                 void help_operate();
                 void Resetjson_operation();
 
+                void find_Algorithm_started();//搜索算法启动
+
+                void make_algorithm_started();//生成算法启动
+
+                void Output_Clear_Algorithm_Log();//输出并清空算法日志
+
+                void List_algorithms();//列出所有算法
 
             public:
 
 
                 Input_processing(Mazesimulate* p):mazesimulate(p){//注册操作函数
-                    Parameter_table.push_back({"-help","Help with operations", [this](){help_operate();}});//添加默认参数
-                    Parameter_table.push_back({"-g","Start the simulation",[](){}});//添加默认开始参数
-                    Parameter_table.push_back({"-exit","Exit the simulation", [this](){mazesimulate->Log_class.Exit("Simulation exited", Log_Exit::Exit_type::OPERATIONAL_ENUM);}});//添加默认退出参数
-                    Parameter_table.push_back({"-resetjson","Reset the json file", [this](){Resetjson_operation();}});//添加默认重置json参数
-                    Parameter_table.push_back({"-resetjsonport","Refresh port configuration file", [this](){mazesimulate->Config_class.Generate_port_file();}});//添加默认重置json端口参数
+                Create_table();
                 }
 
 
-                void add_config_table(std::string config_name, std::string config_description, int* Address);//添加配置表
+                //void add_config_table(std::string config_name, std::string config_description, int* Address);//添加配置表
 
                 void Get_Input();//获取用户输入
 
@@ -322,7 +391,7 @@ class Mazesimulate {
 
                 Data_Processing(Mazesimulate* p):mazesimulate(p){}
 
-                void Add_config_table();//快速添加配置
+                //void Add_config_table();//快速添加配置
 
                 void Initialize_data();//初始化数据
 
@@ -330,8 +399,46 @@ class Mazesimulate {
         };
 
 
-        class Render_Send{//渲染发送类
+        class Algorithm_Tools{//算法工具类
+            
+            public:
+                 struct Algorithm_Address{//算法表
+                    std::string name;//算法名
+                    std::string description;//算法介绍
+                };
 
+                std::vector<Algorithm_Address> make_algorithm_Info;//生成算法地址信息表
+                std::vector<Algorithm_Address> find_algorithm_Info;//生成搜索算法信息表
+
+            private://私有
+
+                Mazesimulate* mazesimulate;//获取Mazesimulate对象
+
+                std::vector<std::function<void(Mazesimulate&)>> make_algorithm;//生成算法地址表
+
+                std::vector<std::function<void(Mazesimulate&)>> find_algorithm;//搜索算法地址表
+
+
+            public://公有
+
+
+                Algorithm_Tools(Mazesimulate* p):mazesimulate(p){} //构造函数
+
+                void Add_make_algorithm(std::string name, std::string description, std::function<void(Mazesimulate&)> Function_address);//添加算法
+
+                void Add_find_algorithm(std::string name, std::string description, std::function<void(Mazesimulate&)> Function_address);//添加算法
+
+                void Run_make_algorithm(int index);//运行生成算法
+
+                void Run_find_algorithm(int index);//运行搜索算法
+
+        };
+
+
+
+
+        class Render_Send{//渲染发送类
+            /*本类用于渲染数据发送到渲染端口 待实现*/
             private://私有
 
                Mazesimulate* mazesimulate;//获取Mazesimulate对象
@@ -350,6 +457,36 @@ class Mazesimulate {
         };
 
 
+        class map_api{//地图API接口
+
+            private://私有
+
+            Mazesimulate* mazesimulate;//获取Mazesimulate对象
+
+            public:
+
+            map_api(Mazesimulate* p):mazesimulate(p){} //构造函数
+            
+            bool Check_mapscope(int x, int y);//检查xy范围
+            bool Check_Maptype(int x, int y, Mazesimulate::Map_data::Map_type a_tag);//检查地图类型
+            bool Check_Mapfinish(int x, int y);//检查地图是否到达终点
+            bool Check_Mapstart(int x, int y);//检查地图是否到达起点
+
+            Mazesimulate::Map_data::Map_type Get_maptype(int x, int y);//获取地图类型
+            Mazesimulate::Map_data::Location Get_mapfinish();//获取终点位置
+            Mazesimulate::Map_data::Location Get_mapstart();//获取起点位置
+            Mazesimulate::Map_data::Location Get_mapsize();//获取地图大小
+
+            void Set_maptype(int x, int y, Mazesimulate::Map_data::Map_type a_tag);//设置地图类型
+            void Set_mapfinish(int x, int y);//设置终点
+            void Set_mapstart(int x, int y);//设置起点
+
+            void Set_allmaptype(Mazesimulate::Map_data::Map_type a_tag);//设置全部地图类型
+
+            void Output_log(std::string log, Mazesimulate::Log_Exit::Algorithm_Log type);
+
+        };
+
         //成员对象构造时传入 this
 
         Render_Send Render_send{this};//渲染发送对象
@@ -358,14 +495,27 @@ class Mazesimulate {
         Log_Exit Log_class{this};//日志处理对象
         Input_processing Input_class{this};//用户输入处理对象
         Data_Processing Data_class{this};//数据处理对象
+        Algorithm_Tools Algorithm_class{this};//算法工具对象
 
 
 
     public://公有
 
+        map_api mapapi{this};//创建地图API接口实例
+
+        using log_type = Mazesimulate::Log_Exit::Algorithm_Log;//日志类型
+
+        using Map_type = Mazesimulate::Map_data::Map_type;//状态标签
+
+        using location = Mazesimulate::Map_data::Location;//位置结构体
+
+        
+
         void Framework_Entry();//程序入口函数
 
-
+        void add_make_Method(std::string name, std::string description, std::function<void(Mazesimulate&)> Function_address);//添加生成算法
+        
+        void add_find_Method(std::string name, std::string description, std::function<void(Mazesimulate&)> Function_address);//添加搜索算法
 
 
 };
