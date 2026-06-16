@@ -33,17 +33,7 @@
 
 
 /*
-*                                                                        
-*                   ※2026年6月15日任务列表                                   
-*       A.算法使用以及调用方法(Algorithm call) - [Regular task]             
-*       任务要求(完成简单的测试确认调用的函数可以使用日志的功能)
-*       (任务状态:已完成)
-*
-*       B.把一整个框架轻微重构(加入TRY/CATCH块)提供更完整的日志功能
-*       而不是直接退出退出(Need to catch exceptions) - [Sudden mission!]
-*       任务要求(完成测试确认无误程序可以正常捕获异常 并且项目大部分函数使用(加入TRY/CATCH块))
-*       (任务状态:已完成)
-*
+*                        半成品框架结构 还没有做完 还差算法刷新 以及渲染转发处理
 */
 
 
@@ -340,15 +330,14 @@ class Mazesimulate {
 
                //操作函数(用户输入操作)
                 void help_operate();
+
                 void Resetjson_operation();
 
-                void find_Algorithm_started();//搜索算法启动
-
-                void make_algorithm_started();//生成算法启动
-
-                void Output_Clear_Algorithm_Log();//输出并清空算法日志
-
                 void List_algorithms();//列出所有算法
+
+                void Version_Info();//版本信息
+
+                void Check_mapinfo();//检查地图信息
 
             public:
 
@@ -488,15 +477,13 @@ class Mazesimulate {
         };
 
         //成员对象构造时传入 this
-
-        Render_Send Render_send{this};//渲染发送对象
-        Map_data Map_class{this};//地图数据对象
-        Config_Reading Config_class{this};//配置读取对象
         Log_Exit Log_class{this};//日志处理对象
-        Input_processing Input_class{this};//用户输入处理对象
-        Data_Processing Data_class{this};//数据处理对象
+        Input_processing Input_class{this};//用户输入处理对象   
+        Data_Processing Data_class{this};//数据处理对象    
+        Config_Reading Config_class{this};//配置读取对象               
+        Map_data Map_class{this};//地图数据对象
+        Render_Send Render_send{this};//渲染发送对象
         Algorithm_Tools Algorithm_class{this};//算法工具对象
-
 
 
     public://公有

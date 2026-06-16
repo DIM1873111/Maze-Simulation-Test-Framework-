@@ -326,10 +326,15 @@ Parameter_table.push_back({"-resetjson","Reset the json file", [this](){Resetjso
 Parameter_table.push_back({"-resetjsonport","Refresh port configuration file", [this](){mazesimulate->Config_class.Generate_port_file();}});//添加默认重置json端口参数
 
 Parameter_table.push_back({"-listmethods","List the algorithms", [this](){List_algorithms();}});
-Parameter_table.push_back({"-make","Run the generation algorithm", [this](){make_algorithm_started();}});
-Parameter_table.push_back({"-find","Run a search algorithm", [this](){find_Algorithm_started();}});
+Parameter_table.push_back({"-make","Run the generation algorithm", [this](){mazesimulate->Algorithm_class.Run_make_algorithm(mazesimulate->Selected_generation_method);}});
+Parameter_table.push_back({"-find","Run a search algorithm", [this](){mazesimulate->Algorithm_class.Run_find_algorithm(mazesimulate->Selected_search_method);}});
 
-Parameter_table.push_back({"-methodlog","List the method log and clear the container", [this](){Output_Clear_Algorithm_Log();}});
+Parameter_table.push_back({"-methodlog","List the method log and clear the container", [this](){mazesimulate->Log_class.Export_history_log();}});
+
+Parameter_table.push_back({"-mapinfo", "Check map information", [this](){Check_mapinfo();}});
+
+Parameter_table.push_back({"-version","Check version info", [this](){Version_Info();}});
+
 
 config.push_back({"mapx", "Map X length", &mazesimulate->Map_length_X});
 config.push_back({"mapy", "Map Y length", &mazesimulate->Map_length_Y});
@@ -359,7 +364,8 @@ if(config.empty()){
 
   for(const auto& Parameter : Parameter_table){
     std::cout << "[\033[90m" << Parameter.name << "\033[0m]" << Parameter.Guide << std::endl;
-    }  
+    }
+    std::cout << "[\033[90m(CTRL+C)\033[0m]" << "Exit the simulation(-EOF)" << std::endl;
 }
 //配置列表
 std::cout << "Config Parameter Table:" << std::endl;
@@ -372,10 +378,37 @@ if(config.empty()){
     for(const auto& config : config){
     std::cout << "[\033[90m" << config.config_name << "\033[0m]" << config.config_description << " - > " << *config.Address <<std::endl;
     }
+    
 
+}
+std::cout << "Parameter Usage:" << std::endl;
+std::cout << "Just use 'parameterName'+'parameter'" << std::endl;
+std::cout << "Directly use the function '-Function_Name' " << std::endl;
+std::cout << "You need a space between every parameter or function" << std::endl;
+std::cout << "Execute from left to right" << std::endl;
 }
 
 
+void Mazesimulate::Input_processing::Check_mapinfo(){//检查地图信息
+Mazesimulate::Map_data::Map_Info map_info = mazesimulate->Map_class.get_map_info();//获取地图信息
+std::cout << "Map Status:";
+switch (map_info.map_status){
+    case Mazesimulate::Map_data::Map_Status::NOT_INITIALIZED_ENUM://未初始化
+        std::cout << "\033[2mNot initialized\033[0m" << std::endl;
+        break;
+
+    case Mazesimulate::Map_data::Map_Status::INITIALIZED_ENUM://初始化
+        std::cout << "Initialized" << std::endl;
+    break;
+
+    case Mazesimulate::Map_data::Map_Status::GENERATED_ENUM://生成
+        std::cout << "\033[32m\033[2mGenerated\033[0m" << std::endl;
+    break;
+
+}
+std::cout << "Map Length X:" << map_info.practical_X << std::endl;
+std::cout << "Map Length Y:" << map_info.practical_Y << std::endl;
+std::cout << "Map Area:" << map_info.map_area << std::endl;
 
 }
 
@@ -387,20 +420,23 @@ mazesimulate->Config_class.Create_Config();//创建json文件 并且写入默认
 mazesimulate->Log_class.cout_Log_system("Operation completed", Log_Exit::Log_type::NOTICE_ENUM);//输出通知日志
 
 }
-//void find_Algorithm_started()
-void Mazesimulate::Input_processing::find_Algorithm_started(){
-    //调用启动搜索算法
-    mazesimulate->Algorithm_class.Run_find_algorithm(mazesimulate->Selected_search_method);//调用启动搜索算法
-}
 
-void Mazesimulate::Input_processing::make_algorithm_started(){
-    //调用启动生成算法
-    mazesimulate->Algorithm_class.Run_make_algorithm(mazesimulate->Selected_generation_method);//调用启动生成算法
-}
+void Mazesimulate::Input_processing::Version_Info(){
+std::string Topic = R"(
+ ____ ____ _________ _________ _________
+|    |    |         |         |         |
+|         |    |    |_____    |    _____|
+|  |   |  |    |    |         |         |
+|  |   |  |         |    _____|    _____|
+|  |   |  |    |    |         |         |
+|__|___|__|____|____|_________|_________|
+[Maze2.Frame|Simulation|Terminal]
+Github:https://github.com/DIM1873111/Maze2
+Email:outlook_F1DEC00551A56B19@outlook.com
+Current version: 0.2.3[Beta version]
+)";
 
-void Mazesimulate::Input_processing::Output_Clear_Algorithm_Log(){
-//输出算法日志
-mazesimulate->Log_class.Export_history_log();//输出算法日志
+std::cout << Topic << std::endl;
 
 }
 
@@ -568,7 +604,7 @@ mazesimulate->Log_class.cout_Log_system(Temporary_log.str(), Log_Exit::Log_type:
 
 void Mazesimulate::Data_Processing::Initialize_data(){//初始化数据
 
-mazesimulate->Input_class.Get_Input();//调用用户输入
+
 
 }
 
@@ -620,7 +656,7 @@ void Mazesimulate::Framework_Entry(){//初始化
 
 
 Data_class.Initialize_data();//初始化数据
-
+Input_class.Get_Input();//调用用户输入
 
 }
 
