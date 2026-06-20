@@ -207,15 +207,11 @@ Parameter_table.push_back({"-g","Start the simulation",[](){}});//添加默认�
 Parameter_table.push_back({"-initmap","Use current data Initialize the map", [this](){mazesimulate->Map_class.Initialize_map_data();}});
 Parameter_table.push_back({"-exit","Exit the simulation", [this](){mazesimulate->Log_class.Exit("Simulation exited", Log_Exit::Exit_type::OPERATIONAL_ENUM);}});//添加默认退出参数
 Parameter_table.push_back({"-resetjson","Reset the json file", [this](){Resetjson_operation();}});//添加默认重置json参数
-
 Parameter_table.push_back({"-listmethods","List the algorithms", [this](){List_algorithms();}});
 Parameter_table.push_back({"-make","Run the generation algorithm", [this](){mazesimulate->Algorithm_class.Run_make_algorithm(mazesimulate->Selected_generation_method);}});
 Parameter_table.push_back({"-find","Run a search algorithm", [this](){mazesimulate->Algorithm_class.Run_find_algorithm(mazesimulate->Selected_search_method);}});
-
 Parameter_table.push_back({"-methodlog","List the method log and clear the container", [this](){mazesimulate->Log_class.Export_history_log();}});
-
 Parameter_table.push_back({"-mapinfo", "Check map information", [this](){Check_mapinfo();}});
-
 Parameter_table.push_back({"-version","Check version info", [this](){Version_Info();}});
 
 config = {
@@ -261,14 +257,15 @@ if(config.empty()){
 }else{
 
     for(const auto& config : config){
-    std::string config_name = Convert_to_string(ToValueVariant(config.Address));//转换配置名
-    std::cout << "[\033[90m" << config.config_name << "\033[0m]" << config.config_description << " - > " << config_name << std::endl;
+    std::string config_name = variantToString(ToValueVariant(config.Address));//转换配置名
+    std::cout << "[\033[90m" << config.config_name << "\033[0m]" << config.config_description << "\033[2m\033[5m\033[3m --> \033[0m{[" << config_name << "]" ;
+    std::cout << Type_Name(config.data_type) << "}" << std::endl;
     }
     
 
 }
 std::cout << "Parameter Usage:" << std::endl;
-std::cout << "Just use 'parameterName'+'parameter'" << std::endl;
+std::cout << "Just use 'parameterName' + ' " << delimiter <<" ' + 'parameter'" << std::endl;
 std::cout << "Directly use the function '-Function_Name' " << std::endl;
 std::cout << "You need a space between every parameter or function" << std::endl;
 std::cout << "Execute from left to right" << std::endl;
@@ -319,7 +316,7 @@ std::string Topic = R"(
 [Maze2.Frame|Simulation|Terminal]
 Github:https://github.com/DIM1873111/Maze2
 Email:outlook_F1DEC00551A56B19@outlook.com
-Current version: 0.4.6[Beta version]
+Current version: 0.4.3[Beta version]
 )";
 
 std::cout << Topic << std::endl;

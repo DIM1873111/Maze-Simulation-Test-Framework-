@@ -25,6 +25,9 @@
 #include "third_party\json.hpp"
 #include "third_party\process\process.hpp"
 
+namespace kn = kissnet;//使用kissnet命名空间
+
+
 
 
 class String_manipulation : public datatype{
@@ -32,9 +35,19 @@ class String_manipulation : public datatype{
     private:
     /*data*/
 
+        bool isFloat(const std::string& s){
+            if(s.empty()){return false;}//如果字符串为空，返回false
+            std::istringstream iss(s);
+            double d;
+            iss >> std::noskipws >> d;   // 不跳过空白，严格匹配
+            // 检查是否读取成功且所有字符都被消耗
+            return (iss.eof() && !iss.fail());/* && (s[0] != '.' && s[s.size()-1] != '.')*/
+        }
+
+
     protected://保护类
 
-std::string variantToString(const std::variant<int, float, std::string, bool>& v){
+std::string variantToString(const std::variant<int, float, std::string, bool>& v){//将variant类型转换为string类型
     switch(v.index()){
         case 0: { // int
             return std::to_string(std::get<int>(v));
@@ -55,29 +68,6 @@ std::string variantToString(const std::variant<int, float, std::string, bool>& v
     }
 }
 
-
-    std::string Convert_to_string(std::variant<int, float, std::string, bool> data){//将数据类型转换为string类型
-        switch(analyzing_type(variantToString(data))){
-            case Data_type::INT_ENUM:
-                return std::to_string(std::get<int>(data));
-            break;
-
-            case Data_type::FLOAT_ENUM:
-                return std::to_string(std::get<float>(data));
-            break;
-
-            case Data_type::STRING_ENUM:
-               return std::get<std::string>(data);
-            break;
-
-            case Data_type::BOOL_ENUM:
-                return std::to_string(std::get<bool>(data));
-            break;
-
-            default:
-                return "[UNKNOWN]";
-        }
-    }
 
     std::variant<int, float, std::string, bool> ToValueVariant(const std::variant<int*, float*, std::string*, bool*>& ptrVar){//将指针转换为variant类型
         if (auto* p = std::get_if<int*>(&ptrVar)) {
@@ -149,9 +139,9 @@ std::string variantToString(const std::variant<int, float, std::string, bool>& v
 
         if(Input.find_first_not_of("0123456789") == std::string::npos){//如果输入全是数字
             return Data_type::INT_ENUM;//返回整数枚举
-        }else if(Count_str_characters(Input, ".") == 1){
+        }else if(isFloat(Input)){
             return Data_type::FLOAT_ENUM;//返回浮点数枚举
-        }else if(Input.find_first_not_of("true") == std::string::npos || Input.find_first_not_of("false") == std::string::npos){
+        }else if(Input == "true" || Input == "false"){
             return Data_type::BOOL_ENUM;//返回布尔枚举
         }else{
             return Data_type::STRING_ENUM;//返回字符串枚举
@@ -163,26 +153,27 @@ std::string variantToString(const std::variant<int, float, std::string, bool>& v
         switch(Input){
 
             case Data_type::INT_ENUM:
-                return "[INT_TYPE]";
+                return "\033[2mINT_TYPE\033[0m";
             break;
 
             case Data_type::FLOAT_ENUM:
-                return "[FLOAT_TYPE]";
+                return "\033[2mFLOAT_TYPE\033[0m";
             break;
 
             case Data_type::BOOL_ENUM:
-                return "[true/false]";
+                return "\033[2mtrue/false\033[0m";
             break;
 
             case Data_type::STRING_ENUM:
-                return "[STRING_TYPE]";
+                return "\033[2mSTRING_TYPE\033[0m";
             break;
 
             default:
-                return "[UNKNOWN]";
+                return "\033[2mUNKNOWN\033[0m";
 
         }
     }
+    //Convert_to_string variantToString
 
     void InputType_Conversion(std::string Input, std::variant<int*, float*, std::string*, bool*> ptrVar , Data_type Input_type){
 
@@ -328,6 +319,109 @@ class json_ConfigRelated :public String_manipulation{
 
 
 
+
+
+
+
+
+
+
+
+
+class Communication : public String_manipulation{
+
+    protected://保护类
+
+    struct network_object{
+        std::string ip_address = "127.0.0.1";//IP地址
+        kn::port_t Send_port = 0000;//发送端口
+        kn::port_t Receive_port = 0001;//接收端口
+    };
+
+    struct Transferdata{
+        std::string Sign;//标识符
+        std::vector<std::string> data;//数据
+    };
+
+
+    private:
+    /*data*/
+
+
+        kn::udp_socket Receive;//创建接收对象
+        kn::udp_socket Send;//创建发送对象
+        network_object Network_settings;//网络设置
+
+
+    protected://保护类
+
+
+    void Create_network_object(network_object Network_settings){//创建网络对象
+        Receive = kn::udp_socket(kn::endpoint{Network_settings.ip_address, Network_settings.Receive_port});//创建接收对象
+        Send = kn::udp_socket(kn::endpoint{Network_settings.ip_address, Network_settings.Send_port});//创建发送对象
+    }
+
+
+        void Send_Data(std::string data){//发送数据
+            Send.send(
+                reinterpret_cast<const std::byte*>(data.data()),
+                data.size()
+            );
+        }
+
+
+
+        std::string Receive_Data(){
+            kn::buffer<1024> buf;
+            auto [len, status] = Receive.recv(buf);
+            if(status && len > 0){
+                // 将收到的字节还原成 std::string
+                std::string received(
+                    reinterpret_cast<const char*>(buf.data()),
+                    len
+                );
+                return received;
+        }
+        return "";
+        }
+
+
+        void Send_data_string(std::string Sign, std::vector<std::string> data){//发送数据
+            Send_Data(Sign + vec_to_str(data));//发送数据
+        }
+
+
+        Transferdata Receive_data_string(){//接收数据
+            std::vector<std::string> data = Transform_str_vec(Receive_Data());//接收数据
+
+            std::string sign = data[0];
+            data.erase(data.begin());//删除标识符
+
+            return Transferdata{sign, data};
+        }
+
+        void Send_Status(std::string Sign ,bool status){//发送状态
+            std::string status_str = status ? "true" : "false";
+            Send_Data(Sign + "." + status_str);//发送状态
+        }
+
+        int Receive_Status(std::string Sign){//接收状态
+            std::pair<std::string, std::string> Parse_receive =  splittwo(Receive_Data(),'.');//根据分隔符将字符串分割成两部分
+            if(Parse_receive.first == Sign){
+
+                if(Parse_receive.second == "true"){
+                    return 1;
+                }else{
+                    return 0;
+                }
+            }else{
+                return -1;
+            }
+        }
+
+
+
+};
 
 
 
